@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Générateur d'Étiquettes Avery J8654 GrandExotique !</title>
+    <title>Générateur d'Étiquettes Avery J8654 pour GrandExotique !</title>
     <style>
         * {
             margin: 0;
@@ -192,7 +192,7 @@
                 width: 210mm;
                 height: 297mm;
                 margin: 0;
-                padding: 4.5mm 4.3mm;
+                padding: 13.5mm 7.15mm;
             }
         }
 
@@ -200,12 +200,14 @@
             width: 210mm;
             height: 297mm;
             margin: 20px auto;
-            padding: 4.5mm 4.3mm;
+            padding: 13.5mm 7.15mm;
             background: white;
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            grid-template-rows: repeat(20, 1fr);
-            gap: 0;
+            grid-template-columns: repeat(4, 45.72mm);
+            grid-template-rows: repeat(10, 25.4mm);
+            gap: 2.54mm;
+            justify-content: center;
+            align-content: center;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             page-break-after: always;
         }
@@ -213,15 +215,16 @@
         .label {
             width: 45.72mm;
             height: 25.4mm;
-            border: 1px dashed #ccc;
-            padding: 2mm;
+            border: 1px dashed #ddd;
+            padding: 1.5mm;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             font-size: 8pt;
-            line-height: 1.2;
+            line-height: 1.1;
             overflow: hidden;
             position: relative;
+            box-sizing: border-box;
         }
 
         .label-category {
@@ -308,8 +311,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🏷️ Générateur d'Étiquettes</h1>
-            <p>Format Avery J8654 - 40 étiquettes par page A4 (45.72 x 25.4 mm)</p>
+            <h1>🏷️  d'Étiquettes</h1>
+            <p>Format Avery J8654 - 40 étiquettes par page A4 (4 colonnes × 10 lignes - 45.72 × 25.4 mm)</p>
         </div>
 
         <div class="main-content">
@@ -322,7 +325,8 @@
                     </label>
                     <input type="file" id="csvFile" accept=".csv" />
                 </div>
-                <p><small>Format attendu : Numéro de commande, Quantité, Nom du produit, Catégorie de conservation</small></p>
+                <p><small>Format attendu : Numéro de commande, Quantité, Nom du produit, Catégorie de conservation<br>
+                Layout : 4 colonnes × 10 lignes = 40 étiquettes par page A4</small></p>
             </div>
 
             <div class="controls">
