@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Générateur d'Étiquettes Avery J8654 pour GrandExotique !</title>
+    <title>Générateur d'Étiquettes Avery J8654</title>
     <style>
         * {
             margin: 0;
@@ -175,7 +175,12 @@
             margin-top: 5px;
         }
 
-        /* Styles d'impression pour les étiquettes Avery J8654 */
+        /* Styles critiques pour le format Avery J8654 */
+        @page {
+            size: A4;
+            margin: 0;
+        }
+
         @media print {
             body * {
                 visibility: hidden;
@@ -192,75 +197,105 @@
                 width: 210mm;
                 height: 297mm;
                 margin: 0;
-                padding: 13.5mm 7.15mm;
+                padding: 0;
+            }
+            
+            .no-print {
+                display: none !important;
             }
         }
 
+        /* Format exact Avery J8654: 4 colonnes × 10 lignes = 40 étiquettes */
         .labels-page {
             width: 210mm;
             height: 297mm;
             margin: 20px auto;
-            padding: 13.5mm 7.15mm;
             background: white;
             display: grid;
             grid-template-columns: repeat(4, 45.72mm);
             grid-template-rows: repeat(10, 25.4mm);
-            gap: 2.54mm;
+            gap: 2.54mm 2.54mm;
             justify-content: center;
             align-content: center;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             page-break-after: always;
+            padding: 13.5mm 7mm;
         }
 
+        /* Étiquette individuelle - dimensions exactes Avery J8654 */
         .label {
             width: 45.72mm;
             height: 25.4mm;
-            border: 1px dashed #ddd;
-            padding: 1.5mm;
+            border: 1px solid #e0e0e0;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            font-size: 8pt;
-            line-height: 1.1;
+            padding: 1.5mm;
+            font-family: Arial, sans-serif;
             overflow: hidden;
             position: relative;
-            box-sizing: border-box;
+            background: white;
         }
 
         .label-category {
             font-weight: bold;
-            font-size: 9pt;
+            font-size: 7pt;
             color: #2c3e50;
             text-transform: uppercase;
             text-align: center;
-            background: #ecf0f1;
-            padding: 1px 0;
-            border-radius: 2px;
-            margin-bottom: 1mm;
+            background: #f8f9fa;
+            padding: 0.5mm 0;
+            border-radius: 1mm;
+            margin-bottom: 0.5mm;
+            line-height: 1;
         }
 
         .label-product {
             flex: 1;
             display: flex;
             align-items: center;
+            justify-content: center;
             font-weight: 600;
-            color: #34495e;
+            font-size: 8pt;
+            color: #2c3e50;
             text-align: center;
+            line-height: 1.1;
             word-wrap: break-word;
             overflow-wrap: break-word;
+            hyphens: auto;
         }
 
         .label-order {
-            font-size: 7pt;
-            color: #7f8c8d;
-            text-align: right;
-            font-weight: normal;
+            font-size: 11pt;
+            color: #000;
+            text-align: center;
+            font-weight: bold;
+            margin-top: 0.5mm;
+            line-height: 1;
+            letter-spacing: 0.2mm;
         }
 
-        .category-surgele { background-color: #e8f4fd; color: #1e88e5; }
-        .category-viandes { background-color: #ffebee; color: #d32f2f; }
-        .category-frais { background-color: #e8f5e8; color: #388e3c; }
-        .category-sec { background-color: #fff3e0; color: #f57c00; }
+        /* Codes couleur par catégorie */
+        .category-surgele { 
+            background-color: #e3f2fd; 
+            color: #1565c0; 
+            border: 1px solid #bbdefb;
+        }
+        .category-viandes { 
+            background-color: #ffebee; 
+            color: #c62828; 
+            border: 1px solid #ffcdd2;
+        }
+        .category-frais { 
+            background-color: #e8f5e8; 
+            color: #2e7d32; 
+            border: 1px solid #c8e6c9;
+        }
+        .category-sec { 
+            background-color: #fff3e0; 
+            color: #ef6c00; 
+            border: 1px solid #ffcc02;
+        }
 
         .no-data {
             text-align: center;
@@ -306,13 +341,22 @@
             margin: 20px 0;
             border-left: 4px solid #388e3c;
         }
+
+        /* Debug - pour vérifier l'alignement */
+        .debug-mode .labels-page {
+            background: #f0f0f0;
+        }
+        
+        .debug-mode .label {
+            border: 1px solid #ff0000;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🏷️  d'Étiquettes</h1>
-            <p>Format Avery J8654 - 40 étiquettes par page A4 (4 colonnes × 10 lignes - 45.72 × 25.4 mm)</p>
+            <h1>🏷️ Générateur d'Étiquettes Avery J8654</h1>
+            <p>Format exact: 4 colonnes × 10 lignes = 40 étiquettes (45.72 × 25.4 mm)</p>
         </div>
 
         <div class="main-content">
@@ -331,8 +375,12 @@
 
             <div class="controls">
                 <div class="control-group">
-                    <label for="fontSize">Taille de police (pt)</label>
-                    <input type="number" id="fontSize" value="8" min="6" max="14" />
+                    <label for="fontSize">Taille police produit (pt)</label>
+                    <input type="number" id="fontSize" value="8" min="6" max="12" />
+                </div>
+                <div class="control-group">
+                    <label for="orderFontSize">Taille police commande (pt)</label>
+                    <input type="number" id="orderFontSize" value="11" min="8" max="16" />
                 </div>
                 <div class="control-group">
                     <label for="startPage">Page de départ</label>
@@ -347,7 +395,10 @@
             <div class="controls">
                 <button class="btn" onclick="generateLabels()">🏷️ Générer les étiquettes</button>
                 <button class="btn" onclick="printLabels()" id="printBtn" disabled>🖨️ Imprimer</button>
-                <button class="btn" onclick="exportToPDF()" id="exportBtn" disabled>📄 Exporter PDF</button>
+                <button class="btn" onclick="loadSampleData()">📝 Charger données test</button>
+                <label>
+                    <input type="checkbox" id="debugMode" onchange="toggleDebugMode()"> Mode debug
+                </label>
             </div>
 
             <div id="stats" class="stats" style="display: none;">
@@ -363,21 +414,25 @@
                     <div class="stat-number" id="categoriesCount">0</div>
                     <div class="stat-label">Catégories différentes</div>
                 </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="labelsPerPage">40</div>
+                    <div class="stat-label">Étiquettes par page</div>
+                </div>
             </div>
 
             <div id="messages"></div>
-            <div id="pagination"></div>
+            <div id="pagination" class="no-print"></div>
             <div id="labelsContainer"></div>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
         let csvData = [];
         let currentPage = 1;
         let totalPages = 0;
-        const labelsPerPage = 40;
+        const LABELS_PER_PAGE = 40; // Exactement 40 pour Avery J8654
+        const COLS_PER_PAGE = 4;    // 4 colonnes
+        const ROWS_PER_PAGE = 10;   // 10 lignes
 
         document.getElementById('csvFile').addEventListener('change', handleFileSelect);
 
@@ -453,7 +508,7 @@
 
             const maxLabels = parseInt(document.getElementById('maxLabels').value) || csvData.length;
             const effectiveLabels = Math.min(csvData.length, maxLabels);
-            totalPages = Math.ceil(effectiveLabels / labelsPerPage);
+            totalPages = Math.ceil(effectiveLabels / LABELS_PER_PAGE);
             
             const categories = new Set();
             csvData.forEach(row => {
@@ -468,7 +523,6 @@
         }
 
         function getCategoryFromRow(row) {
-            // Essayer différents noms de colonnes possibles
             const possibleKeys = [
                 'categorie_conservation',
                 'Catégorie de conservation',
@@ -537,7 +591,7 @@
             const maxLabels = parseInt(document.getElementById('maxLabels').value) || csvData.length;
             const effectiveData = csvData.slice(0, maxLabels);
             
-            totalPages = Math.ceil(effectiveData.length / labelsPerPage);
+            totalPages = Math.ceil(effectiveData.length / LABELS_PER_PAGE);
             currentPage = parseInt(document.getElementById('startPage').value) || 1;
             
             renderLabelsPage(currentPage, effectiveData);
@@ -545,23 +599,23 @@
             updateStats();
             
             document.getElementById('printBtn').disabled = false;
-            document.getElementById('exportBtn').disabled = false;
             
-            showMessage('Étiquettes générées avec succès!', 'success');
+            showMessage(`Étiquettes générées: ${effectiveData.length} étiquettes sur ${totalPages} page(s)`, 'success');
         }
 
         function renderLabelsPage(pageNum, data) {
             const container = document.getElementById('labelsContainer');
             const fontSize = document.getElementById('fontSize').value + 'pt';
+            const orderFontSize = document.getElementById('orderFontSize').value + 'pt';
             
-            const startIndex = (pageNum - 1) * labelsPerPage;
-            const endIndex = Math.min(startIndex + labelsPerPage, data.length);
+            const startIndex = (pageNum - 1) * LABELS_PER_PAGE;
+            const endIndex = Math.min(startIndex + LABELS_PER_PAGE, data.length);
             const pageData = data.slice(startIndex, endIndex);
             
-            let html = `<div class="labels-page" style="font-size: ${fontSize};">`;
+            let html = '<div class="labels-page">';
             
-            // Générer les étiquettes pour cette page
-            for (let i = 0; i < labelsPerPage; i++) {
+            // Générer exactement 40 étiquettes (4 colonnes × 10 lignes)
+            for (let i = 0; i < LABELS_PER_PAGE; i++) {
                 if (i < pageData.length) {
                     const row = pageData[i];
                     const category = getCategoryFromRow(row);
@@ -574,18 +628,18 @@
                     html += `
                         <div class="label">
                             <div class="label-category ${categoryClass}">
-                                ${category}
+                                ${category || 'NON SPÉCIFIÉ'}
                             </div>
-                            <div class="label-product">
+                            <div class="label-product" style="font-size: ${fontSize};">
                                 ${quantity} ${product}
                             </div>
-                            <div class="label-order">
+                            <div class="label-order" style="font-size: ${orderFontSize};">
                                 ${order}
                             </div>
                         </div>
                     `;
                 } else {
-                    // Étiquette vide pour compléter la grille
+                    // Étiquette vide pour compléter la grille de 40
                     html += '<div class="label"></div>';
                 }
             }
@@ -651,16 +705,17 @@
             const maxLabels = parseInt(document.getElementById('maxLabels').value) || csvData.length;
             const effectiveData = csvData.slice(0, maxLabels);
             const fontSize = document.getElementById('fontSize').value + 'pt';
+            const orderFontSize = document.getElementById('orderFontSize').value + 'pt';
             
             let allPagesHTML = '';
             for (let page = 1; page <= totalPages; page++) {
-                const startIndex = (page - 1) * labelsPerPage;
-                const endIndex = Math.min(startIndex + labelsPerPage, effectiveData.length);
+                const startIndex = (page - 1) * LABELS_PER_PAGE;
+                const endIndex = Math.min(startIndex + LABELS_PER_PAGE, effectiveData.length);
                 const pageData = effectiveData.slice(startIndex, endIndex);
                 
-                allPagesHTML += `<div class="labels-page" style="font-size: ${fontSize};">`;
+                allPagesHTML += '<div class="labels-page">';
                 
-                for (let i = 0; i < labelsPerPage; i++) {
+                for (let i = 0; i < LABELS_PER_PAGE; i++) {
                     if (i < pageData.length) {
                         const row = pageData[i];
                         const category = getCategoryFromRow(row);
@@ -672,12 +727,12 @@
                         allPagesHTML += `
                             <div class="label">
                                 <div class="label-category ${categoryClass}">
-                                    ${category}
+                                    ${category || 'NON SPÉCIFIÉ'}
                                 </div>
-                                <div class="label-product">
+                                <div class="label-product" style="font-size: ${fontSize};">
                                     ${quantity} ${product}
                                 </div>
-                                <div class="label-order">
+                                <div class="label-order" style="font-size: ${orderFontSize};">
                                     ${order}
                                 </div>
                             </div>
@@ -701,13 +756,77 @@
             }, 100);
         }
 
-        function exportToPDF() {
-            showMessage('Export PDF en cours...', 'success');
-            // Cette fonctionnalité nécessiterait une implémentation plus complexe
-            // Pour l'instant, recommander l'impression vers PDF
-            setTimeout(() => {
-                showMessage('Utilisez "Imprimer" et sélectionnez "Enregistrer au format PDF" dans votre navigateur.', 'error');
-            }, 1000);
+        function toggleDebugMode() {
+            const debugMode = document.getElementById('debugMode').checked;
+            document.body.classList.toggle('debug-mode', debugMode);
+        }
+
+        function loadSampleData() {
+            csvData = [
+                {
+                    'Name': '#1392',
+                    'Lineitem quantity': '1',
+                    'Lineitem name': 'Escargots décortiqués(congelé) - 250 g',
+                    'categorie_conservation': 'surgelé'
+                },
+                {
+                    'Name': '#1393',
+                    'Lineitem quantity': '1',
+                    'Lineitem name': 'Placali congelé (500g) - 1 boule',
+                    'categorie_conservation': 'surgelé'
+                },
+                {
+                    'Name': '#1392',
+                    'Lineitem quantity': '1',
+                    'Lineitem name': 'Poisson Capitaine/Bar du Sénégal surgelé - 1 kg',
+                    'categorie_conservation': 'surgelé'
+                },
+                {
+                    'Name': '#1389',
+                    'Lineitem quantity': '1',
+                    'Lineitem name': 'Poisson Chat entier - 3 kg',
+                    'categorie_conservation': 'frais'
+                },
+                {
+                    'Name': '#1388',
+                    'Lineitem quantity': '1',
+                    'Lineitem name': 'Poisson Malengwa / Malengua surgelé (4KG)',
+                    'categorie_conservation': 'frais'
+                },
+                {
+                    'Name': '#1393',
+                    'Lineitem quantity': '1',
+                    'Lineitem name': 'Attieke Agbodjama - 1 boule',
+                    'categorie_conservation': 'frais'
+                },
+                {
+                    'Name': '#1391',
+                    'Lineitem quantity': '1',
+                    'Lineitem name': 'Attieke fin frais - 3 boules',
+                    'categorie_conservation': 'frais'
+                },
+                {
+                    'Name': '#1391',
+                    'Lineitem quantity': '2',
+                    'Lineitem name': 'Bananes vertes',
+                    'categorie_conservation': 'frais'
+                },
+                {
+                    'Name': '#1391',
+                    'Lineitem quantity': '3',
+                    'Lineitem name': 'Bobolo / Bâtons de maniocs - Grand',
+                    'categorie_conservation': 'frais'
+                },
+                {
+                    'Name': '#1392',
+                    'Lineitem quantity': '7',
+                    'Lineitem name': 'Bobolo / Bâtons de maniocs - Petit',
+                    'categorie_conservation': 'frais'
+                }
+            ];
+            
+            showMessage('✅ Données d\'exemple chargées! Cliquez sur "Générer les étiquettes".', 'success');
+            updateStats();
         }
 
         function showMessage(text, type) {
@@ -719,44 +838,6 @@
                 container.innerHTML = '';
             }, 5000);
         }
-
-        // Données d'exemple pour démonstration
-        function loadSampleData() {
-            csvData = [
-                {
-                    'Name': 'CMD001',
-                    'Lineitem quantity': '2',
-                    'Lineitem name': 'Yaourt nature bio',
-                    'categorie_conservation': 'frais'
-                },
-                {
-                    'Name': 'CMD001',
-                    'Lineitem quantity': '1',
-                    'Lineitem name': 'Steak haché 5%',
-                    'categorie_conservation': 'viandes fraiche'
-                },
-                {
-                    'Name': 'CMD002',
-                    'Lineitem quantity': '3',
-                    'Lineitem name': 'Pizza surgelée',
-                    'categorie_conservation': 'surgelé'
-                },
-                {
-                    'Name': 'CMD002',
-                    'Lineitem quantity': '1',
-                    'Lineitem name': 'Pâtes italiennes',
-                    'categorie_conservation': 'sec'
-                }
-            ];
-            
-            showMessage('Données d\'exemple chargées! Cliquez sur "Générer les étiquettes".', 'success');
-            updateStats();
-        }
-
-        // Charger les données d'exemple au démarrage pour la démonstration
-        document.addEventListener('DOMContentLoaded', function() {
-            // loadSampleData(); // Décommentez pour charger automatiquement les données d'exemple
-        });
     </script>
 </body>
 </html>
