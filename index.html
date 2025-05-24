@@ -841,3 +841,74 @@
     </script>
 </body>
 </html>
+
+  @media print {
+        body {
+            background: none !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        .container {
+            box-shadow: none !important;
+            background: white !important;
+            border-radius: 0 !important;
+            max-width: unset !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .header, .main-content, #messages, .stats, .actions, .import-section {
+            display: none !important;
+        }
+        .labels-page {
+            margin: 0;
+            padding: 0;
+            page-break-inside: avoid;
+        }
+        .labels-grid {
+            display: grid !important;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(10, 1fr);
+            gap: 2mm !important;
+            margin: 2.1cm 0.8cm 2.1cm 0.8cm !important;
+            width: calc(210mm - 2*0.8cm);
+            height: calc(297mm - 2*2.1cm);
+        }
+        .label {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+        @page {
+            size: A4;
+            margin: 0;
+        }
+    }
+    .labels-page {
+        padding: 0;
+        margin: 0;
+    }
+    .labels-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(10, 1fr);
+        gap: 2mm;
+        margin: 2.1cm 0.8cm 2.1cm 0.8cm;
+    }
+    .label {
+        box-sizing: border-box;
+    }
+</style>
+<script>
+    // Permet d'imprimer toutes les pages d'étiquettes en couleur
+    document.addEventListener('DOMContentLoaded', function() {
+        const printBtn = document.getElementById('print-btn');
+        if (printBtn) {
+            printBtn.addEventListener('click', function() {
+                window.print();
+            });
+        }
+    });
+</script>
+
