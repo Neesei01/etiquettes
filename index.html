@@ -206,25 +206,27 @@
         }
 
         /* Format exact Avery J8654: 4 colonnes × 10 lignes = 40 étiquettes */
+        /* Dimensions corrigées: 4.8cm × 2.54cm avec marges exactes */
         .labels-page {
             width: 210mm;
             height: 297mm;
             margin: 20px auto;
             background: white;
             display: grid;
-            grid-template-columns: repeat(4, 45.72mm);
+            grid-template-columns: repeat(4, 48mm);
             grid-template-rows: repeat(10, 25.4mm);
-            gap: 2.54mm 2.54mm;
+            gap: 0; /* Aucun espace entre les étiquettes */
             justify-content: center;
             align-content: center;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             page-break-after: always;
-            padding: 13.5mm 7mm;
+            /* Marges: 0.8cm (8mm) gauche/droite, 2.1cm (21mm) haut/bas */
+            padding: 21mm 8mm;
         }
 
-        /* Étiquette individuelle - dimensions exactes Avery J8654 */
+        /* Étiquette individuelle - dimensions exactes: 4.8cm × 2.54cm */
         .label {
-            width: 45.72mm;
+            width: 48mm;
             height: 25.4mm;
             border: 1px solid #e0e0e0;
             display: flex;
@@ -342,6 +344,30 @@
             border-left: 4px solid #388e3c;
         }
 
+        /* Options d'impression */
+        .print-options {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #dee2e6;
+        }
+
+        .print-options h4 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .print-options label {
+            display: block;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+
+        .print-options input[type="radio"] {
+            margin-right: 10px;
+        }
+
         /* Debug - pour vérifier l'alignement */
         .debug-mode .labels-page {
             background: #f0f0f0;
@@ -355,8 +381,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🏷️ Générateur d'Étiquettes Avery J8654 - GrandExotique </h1>
-            <p>Format exact: 4 colonnes × 10 lignes = 40 étiquettes (45.72 × 25.4 mm)</p>
+            <h1>🏷️ Générateur d'Étiquettes Avery J8654</h1>
+            <p>Format exact: 4 colonnes × 10 lignes = 40 étiquettes (4.8 × 2.54 cm)</p>
         </div>
 
         <div class="main-content">
@@ -394,11 +420,28 @@
 
             <div class="controls">
                 <button class="btn" onclick="generateLabels()">🏷️ Générer les étiquettes</button>
-                <button class="btn" onclick="printLabels()" id="printBtn" disabled>🖨️ Imprimer</button>
+                <button class="btn" onclick="showPrintOptions()" id="printBtn" disabled>🖨️ Imprimer</button>
                 <button class="btn" onclick="loadSampleData()">📝 Charger données test</button>
                 <label>
                     <input type="checkbox" id="debugMode" onchange="toggleDebugMode()"> Mode debug
                 </label>
+            </div>
+
+            <!-- Options d'impression -->
+            <div id="printOptions" class="print-options" style="display: none;">
+                <h4>Options d'impression</h4>
+                <label>
+                    <input type="radio" name="printMode" value="current" checked>
+                    Imprimer seulement la page courante (Page <span id="currentPageNum">1</span>)
+                </label>
+                <label>
+                    <input type="radio" name="printMode" value="all">
+                    Imprimer toutes les pages (<span id="totalPagesNum">0</span> pages)
+                </label>
+                <div style="margin-top: 15px;">
+                    <button class="btn" onclick="executePrint()">🖨️ Lancer l'impression</button>
+                    <button class="btn" onclick="hidePrintOptions()" style="background: #6c757d;">Annuler</button>
+                </div>
             </div>
 
             <div id="stats" class="stats" style="display: none;">
@@ -518,6 +561,7 @@
 
             document.getElementById('totalLabels').textContent = effectiveLabels;
             document.getElementById('totalPages').textContent = totalPages;
+            document.getElementById('totalPagesNum').textContent = totalPages;
             document.getElementById('categoriesCount').textContent = categories.size;
             document.getElementById('stats').style.display = 'grid';
         }
@@ -599,6 +643,7 @@
             updateStats();
             
             document.getElementById('printBtn').disabled = false;
+            document.getElementById('currentPageNum').textContent = currentPage;
             
             showMessage(`Étiquettes générées: ${effectiveData.length} étiquettes sur ${totalPages} page(s)`, 'success');
         }
@@ -692,15 +737,24 @@
             
             renderLabelsPage(currentPage, effectiveData);
             updatePagination();
+            document.getElementById('currentPageNum').textContent = currentPage;
         }
 
-        function printLabels() {
+        function showPrintOptions() {
             if (csvData.length === 0) {
                 showMessage('Aucune étiquette à imprimer.', 'error');
                 return;
             }
             
-            // Générer toutes les pages pour l'impression
+            document.getElementById('printOptions').style.display = 'block';
+        }
+
+        function hidePrintOptions() {
+            document.getElementById('printOptions').style.display = 'none';
+        }
+
+        function executePrint() {
+            const printMode = document.querySelector('input[name="printMode"]:checked').value;
             const container = document.getElementById('labelsContainer');
             const maxLabels = parseInt(document.getElementById('maxLabels').value) || csvData.length;
             const effectiveData = csvData.slice(0, maxLabels);
@@ -708,44 +762,29 @@
             const orderFontSize = document.getElementById('orderFontSize').value + 'pt';
             
             let allPagesHTML = '';
-            for (let page = 1; page <= totalPages; page++) {
-                const startIndex = (page - 1) * LABELS_PER_PAGE;
+            
+            if (printMode === 'current') {
+                // Imprimer seulement la page courante
+                const startIndex = (currentPage - 1) * LABELS_PER_PAGE;
                 const endIndex = Math.min(startIndex + LABELS_PER_PAGE, effectiveData.length);
                 const pageData = effectiveData.slice(startIndex, endIndex);
                 
-                allPagesHTML += '<div class="labels-page">';
-                
-                for (let i = 0; i < LABELS_PER_PAGE; i++) {
-                    if (i < pageData.length) {
-                        const row = pageData[i];
-                        const category = getCategoryFromRow(row);
-                        const quantity = getQuantityFromRow(row);
-                        const product = getProductFromRow(row);
-                        const order = getOrderFromRow(row);
-                        const categoryClass = getCategoryClass(category);
-                        
-                        allPagesHTML += `
-                            <div class="label">
-                                <div class="label-category ${categoryClass}">
-                                    ${category || 'NON SPÉCIFIÉ'}
-                                </div>
-                                <div class="label-product" style="font-size: ${fontSize};">
-                                    ${quantity} ${product}
-                                </div>
-                                <div class="label-order" style="font-size: ${orderFontSize};">
-                                    ${order}
-                                </div>
-                            </div>
-                        `;
-                    } else {
-                        allPagesHTML += '<div class="label"></div>';
-                    }
+                allPagesHTML = generatePageHTML(pageData, fontSize, orderFontSize);
+            } else {
+                // Imprimer toutes les pages
+                for (let page = 1; page <= totalPages; page++) {
+                    const startIndex = (page - 1) * LABELS_PER_PAGE;
+                    const endIndex = Math.min(startIndex + LABELS_PER_PAGE, effectiveData.length);
+                    const pageData = effectiveData.slice(startIndex, endIndex);
+                    
+                    allPagesHTML += generatePageHTML(pageData, fontSize, orderFontSize);
                 }
-                
-                allPagesHTML += '</div>';
             }
             
             container.innerHTML = allPagesHTML;
+            
+            // Masquer les options d'impression
+            hidePrintOptions();
             
             setTimeout(() => {
                 window.print();
@@ -754,6 +793,40 @@
                     renderLabelsPage(currentPage, effectiveData);
                 }, 1000);
             }, 100);
+        }
+
+        function generatePageHTML(pageData, fontSize, orderFontSize) {
+            let html = '<div class="labels-page">';
+            
+            for (let i = 0; i < LABELS_PER_PAGE; i++) {
+                if (i < pageData.length) {
+                    const row = pageData[i];
+                    const category = getCategoryFromRow(row);
+                    const quantity = getQuantityFromRow(row);
+                    const product = getProductFromRow(row);
+                    const order = getOrderFromRow(row);
+                    const categoryClass = getCategoryClass(category);
+                    
+                    html += `
+                        <div class="label">
+                            <div class="label-category ${categoryClass}">
+                                ${category || 'NON SPÉCIFIÉ'}
+                            </div>
+                            <div class="label-product" style="font-size: ${fontSize};">
+                                ${quantity} ${product}
+                            </div>
+                            <div class="label-order" style="font-size: ${orderFontSize};">
+                                ${order}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    html += '<div class="label"></div>';
+                }
+            }
+            
+            html += '</div>';
+            return html;
         }
 
         function toggleDebugMode() {
@@ -781,134 +854,3 @@
                     'Lineitem name': 'Poisson Capitaine/Bar du Sénégal surgelé - 1 kg',
                     'categorie_conservation': 'surgelé'
                 },
-                {
-                    'Name': '#1389',
-                    'Lineitem quantity': '1',
-                    'Lineitem name': 'Poisson Chat entier - 3 kg',
-                    'categorie_conservation': 'frais'
-                },
-                {
-                    'Name': '#1388',
-                    'Lineitem quantity': '1',
-                    'Lineitem name': 'Poisson Malengwa / Malengua surgelé (4KG)',
-                    'categorie_conservation': 'frais'
-                },
-                {
-                    'Name': '#1393',
-                    'Lineitem quantity': '1',
-                    'Lineitem name': 'Attieke Agbodjama - 1 boule',
-                    'categorie_conservation': 'frais'
-                },
-                {
-                    'Name': '#1391',
-                    'Lineitem quantity': '1',
-                    'Lineitem name': 'Attieke fin frais - 3 boules',
-                    'categorie_conservation': 'frais'
-                },
-                {
-                    'Name': '#1391',
-                    'Lineitem quantity': '2',
-                    'Lineitem name': 'Bananes vertes',
-                    'categorie_conservation': 'frais'
-                },
-                {
-                    'Name': '#1391',
-                    'Lineitem quantity': '3',
-                    'Lineitem name': 'Bobolo / Bâtons de maniocs - Grand',
-                    'categorie_conservation': 'frais'
-                },
-                {
-                    'Name': '#1392',
-                    'Lineitem quantity': '7',
-                    'Lineitem name': 'Bobolo / Bâtons de maniocs - Petit',
-                    'categorie_conservation': 'frais'
-                }
-            ];
-            
-            showMessage('✅ Données d\'exemple chargées! Cliquez sur "Générer les étiquettes".', 'success');
-            updateStats();
-        }
-
-        function showMessage(text, type) {
-            const container = document.getElementById('messages');
-            const className = type === 'error' ? 'error' : 'success';
-            container.innerHTML = `<div class="${className}">${text}</div>`;
-            
-            setTimeout(() => {
-                container.innerHTML = '';
-            }, 5000);
-        }
-    </script>
-</body>
-</html>
-
-  @media print {
-        body {
-            background: none !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-        }
-        .container {
-            box-shadow: none !important;
-            background: white !important;
-            border-radius: 0 !important;
-            max-width: unset !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-        .header, .main-content, #messages, .stats, .actions, .import-section {
-            display: none !important;
-        }
-        .labels-page {
-            margin: 0;
-            padding: 0;
-            page-break-inside: avoid;
-        }
-        .labels-grid {
-            display: grid !important;
-            grid-template-columns: repeat(4, 1fr);
-            grid-template-rows: repeat(10, 1fr);
-            gap: 2mm !important;
-            margin: 2.1cm 0.8cm 2.1cm 0.8cm !important;
-            width: calc(210mm - 2*0.8cm);
-            height: calc(297mm - 2*2.1cm);
-        }
-        .label {
-            box-sizing: border-box;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-            page-break-inside: avoid;
-            break-inside: avoid;
-        }
-        @page {
-            size: A4;
-            margin: 0;
-        }
-    }
-    .labels-page {
-        padding: 0;
-        margin: 0;
-    }
-    .labels-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        grid-template-rows: repeat(10, 1fr);
-        gap: 2mm;
-        margin: 2.1cm 0.8cm 2.1cm 0.8cm;
-    }
-    .label {
-        box-sizing: border-box;
-    }
-</style>
-<script>
-    // Permet d'imprimer toutes les pages d'étiquettes en couleur
-    document.addEventListener('DOMContentLoaded', function() {
-        const printBtn = document.getElementById('print-btn');
-        if (printBtn) {
-            printBtn.addEventListener('click', function() {
-                window.print();
-            });
-        }
-    });
-</script>
-
