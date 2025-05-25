@@ -223,19 +223,24 @@
         }
 
         /* Étiquette individuelle - dimensions exactes Avery J8654 */
+        
         .label {
             width: 45.72mm;
             height: 25.4mm;
             border: 1px solid #e0e0e0;
+            padding: 1.5mm;
+
+            box-sizing: border-box; /* ✅ Essentiel ici */
+
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 1.5mm;
             font-family: Arial, sans-serif;
             overflow: hidden;
             position: relative;
             background: white;
         }
+
 
         .label-category {
             font-weight: bold;
