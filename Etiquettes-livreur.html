@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Générateur d'Étiquettes Livraison - Avery J8654</title>
+    <title>Générateur d'Étiquettes Livraison - Organisation par Commande</title>
     <style>
         * {
             margin: 0;
@@ -218,7 +218,7 @@
         .badge-viande { background: #ffebee; color: #c62828; }
         .badge-surgele { background: #e3f2fd; color: #1565c0; }
 
-        /* Styles critiques pour le format Avery J8654 */
+        /* Styles pour l'impression */
         @page {
             size: A4;
             margin: 0;
@@ -248,27 +248,32 @@
             }
         }
 
-        /* Format exact Avery J8654: 4 colonnes × 10 lignes = 40 étiquettes */
+        /* Layout spécial : 1 commande par ligne, 4 colonnes */
         .labels-page {
             width: 210mm;
             height: 297mm;
             margin: 20px auto;
             background: white;
-            display: grid;
-            grid-template-columns: repeat(4, 48.5mm);
-            grid-template-rows: repeat(10, 25.4mm);
-            gap: 2mm 2.5mm;
-            justify-content: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
             align-content: start;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             page-break-after: always;
-            padding-left: 6mm;
-            padding-right: 6mm;
-            padding-top: 12mm;
-            padding-bottom: 13mm;
+            padding: 12mm 6mm;
+            gap: 2mm;
         }
 
-        /* Étiquette individuelle - format livraison */
+        /* Ligne de commande : 4 étiquettes côte à côte */
+        .order-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2.5mm;
+            margin-bottom: 2mm;
+            width: 100%;
+        }
+
+        /* Étiquette individuelle */
         .label {
             width: 48.5mm;
             height: 25.4mm;
@@ -288,15 +293,15 @@
 
         .label-order-number {
             font-weight: bold;
-            font-size: 14pt;
+            font-size: 12pt;
             color: #000;
-            margin-bottom: 2mm;
+            margin-bottom: 1mm;
             line-height: 1;
         }
 
         .label-category-type {
             font-weight: bold;
-            font-size: 10pt;
+            font-size: 9pt;
             color: #fff;
             background: #333;
             padding: 1mm 2mm;
@@ -307,6 +312,16 @@
             overflow: hidden;
             text-overflow: ellipsis;
             max-width: 90%;
+        }
+
+        .label-products-list {
+            font-size: 6pt;
+            color: #333;
+            line-height: 1.1;
+            margin-top: 1mm;
+            text-align: left;
+            width: 100%;
+            overflow: hidden;
         }
 
         /* Codes couleur par type de conservation */
@@ -329,6 +344,18 @@
         }
         .label-surgele .label-category-type {
             background: #1565c0;
+        }
+
+        .label-alert {
+            border-color: #ff9800;
+        }
+        .label-alert .label-category-type {
+            background: #ff9800;
+        }
+
+        .label-empty {
+            border: 1px dashed #ccc;
+            background: #f9f9f9;
         }
 
         .error {
@@ -373,8 +400,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🚚 Étiquettes Livraison - GrandExotique</h1>
-            <p>Format Avery J8654 - Étiquettes par commande et type de conservation</p>
+            <h1>🚚 Étiquettes Livraison - Organisation par Commande</h1>
+            <p>Format : 1 commande par ligne, 4 colonnes ordonnées (Sec/Frais • Surgelé • Viandes • Produits critiques)</p>
         </div>
 
         <div class="main-content">
@@ -389,10 +416,11 @@
                 </div>
                 <p><small>Format attendu : Numéro de commande, Quantité, Nom du produit, Catégorie de conservation</small></p>
                 <div style="background: #e8f5e8; color: #2e7d32; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #4caf50;">
-                    <strong>✅ Garantie d'unicité :</strong> Chaque commande apparaît <strong>maximum 1 fois</strong> par type de conservation
-                    <br>• 1 étiquette "Sec & Frais" max par commande
-                    <br>• 1 étiquette "Viande fraîche" max par commande  
-                    <br>• 1 étiquette "Surgelé" max par commande
+                    <strong>📋 Organisation par ligne :</strong>
+                    <br>• <strong>Colonne 1 :</strong> Sec & Frais
+                    <br>• <strong>Colonne 2 :</strong> Surgelé
+                    <br>• <strong>Colonne 3 :</strong> Viandes fraîches
+                    <br>• <strong>Colonne 4 :</strong> ⚠️ Produits à ne pas oublier (cartons, sacs lourds)
                 </div>
             </div>
 
@@ -402,16 +430,16 @@
                     <input type="number" id="startPage" value="1" min="1" />
                 </div>
                 <div class="control-group">
-                    <label for="maxLabels">Max étiquettes (0 = toutes)</label>
-                    <input type="number" id="maxLabels" value="0" min="0" />
+                    <label for="maxOrders">Max commandes (0 = toutes)</label>
+                    <input type="number" id="maxOrders" value="0" min="0" />
                 </div>
                 <div class="control-group">
-                    <label for="duplicateLabels">Dupliquer chaque étiquette</label>
-                    <select id="duplicateLabels">
-                        <option value="1" selected>1 fois</option>
-                        <option value="2">2 fois</option>
-                        <option value="3">3 fois</option>
-                        <option value="4">4 fois</option>
+                    <label for="ordersPerPage">Commandes par page</label>
+                    <select id="ordersPerPage">
+                        <option value="8">8 commandes</option>
+                        <option value="10" selected>10 commandes</option>
+                        <option value="12">12 commandes</option>
+                        <option value="15">15 commandes</option>
                     </select>
                 </div>
             </div>
@@ -428,23 +456,23 @@
                     <div class="stat-label">Commandes uniques</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number" id="totalLabels">0</div>
-                    <div class="stat-label">Étiquettes totales</div>
-                </div>
-                <div class="stat-card">
                     <div class="stat-number" id="totalPages">0</div>
                     <div class="stat-label">Pages nécessaires</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number">40</div>
-                    <div class="stat-label">Étiquettes par page</div>
+                    <div class="stat-number" id="criticalProducts">0</div>
+                    <div class="stat-label">Produits critiques détectés</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="ordersPerPageDisplay">10</div>
+                    <div class="stat-label">Commandes par page</div>
                 </div>
             </div>
 
             <div id="messages"></div>
 
             <div id="previewSection" class="preview-section" style="display: none;">
-                <h3>📋 Aperçu des commandes</h3>
+                <h3>📋 Aperçu des commandes organisées</h3>
                 <div id="summaryTable"></div>
             </div>
 
@@ -455,10 +483,9 @@
 
     <script>
         let csvData = [];
-        let deliveryLabels = [];
+        let orderRows = [];
         let currentPage = 1;
         let totalPages = 0;
-        const LABELS_PER_PAGE = 40;
 
         document.getElementById('csvFile').addEventListener('change', handleFileSelect);
 
@@ -530,89 +557,119 @@
         }
 
         function processOrdersData() {
-            // Grouper par numéro de commande et analyser les catégories
-            const orderCategories = {};
+            // Grouper les données par commande
+            const orderData = {};
             
             csvData.forEach(row => {
                 const orderNum = getOrderFromRow(row);
                 const category = getCategoryFromRow(row);
+                const product = getProductFromRow(row);
+                const quantity = getQuantityFromRow(row);
                 
-                if (!orderCategories[orderNum]) {
-                    orderCategories[orderNum] = new Set();
+                if (!orderData[orderNum]) {
+                    orderData[orderNum] = {
+                        categories: new Set(),
+                        products: []
+                    };
                 }
                 
                 if (category) {
                     const normalizedCategory = normalizeCategory(category);
-                    orderCategories[orderNum].add(normalizedCategory);
+                    orderData[orderNum].categories.add(normalizedCategory);
                 }
+                
+                orderData[orderNum].products.push({
+                    name: product,
+                    quantity: quantity,
+                    category: category
+                });
             });
 
-            // Générer les étiquettes de livraison - GARANTIE D'UNICITÉ
-            deliveryLabels = [];
-            const uniqueLabels = new Set(); // Pour éviter les doublons absolus
+            // Créer les lignes d'étiquettes organisées
+            orderRows = [];
+            let criticalProductsCount = 0;
             
-            Object.keys(orderCategories).forEach(orderNum => {
-                const categories = Array.from(orderCategories[orderNum]);
+            Object.keys(orderData).sort().forEach(orderNum => {
+                const data = orderData[orderNum];
+                const categories = Array.from(data.categories);
                 
-                // Règles de regroupement - chaque commande MAX 1 étiquette par type
-                const hasViandesFraiches = categories.some(cat => cat === 'viandes fraiche');
-                const hasSurgele = categories.some(cat => cat === 'surgele');
-                const hasFraisOrSec = categories.some(cat => cat === 'frais' || cat === 'sec');
-                
-                // Générer UNE SEULE étiquette par type de conservation
-                if (hasFraisOrSec) {
-                    const labelKey = `${orderNum}-frais-sec`;
-                    if (!uniqueLabels.has(labelKey)) {
-                        deliveryLabels.push({
-                            orderNumber: orderNum,
-                            categoryType: 'Sec & Frais',
-                            cssClass: 'label-frais-sec'
-                        });
-                        uniqueLabels.add(labelKey);
-                    }
+                // Analyser les produits critiques
+                const criticalProducts = detectCriticalProducts(data.products);
+                if (criticalProducts.length > 0) {
+                    criticalProductsCount += criticalProducts.length;
                 }
                 
-                if (hasViandesFraiches) {
-                    const labelKey = `${orderNum}-viande`;
-                    if (!uniqueLabels.has(labelKey)) {
-                        deliveryLabels.push({
-                            orderNumber: orderNum,
-                            categoryType: 'Viande fraîche',
-                            cssClass: 'label-viande'
-                        });
-                        uniqueLabels.add(labelKey);
-                    }
+                // Créer la ligne avec 4 colonnes
+                const orderRow = {
+                    orderNumber: orderNum,
+                    column1: null, // Sec & Frais
+                    column2: null, // Surgelé
+                    column3: null, // Viandes fraîches
+                    column4: null  // Produits critiques
+                };
+                
+                // Colonne 1 : Sec & Frais
+                if (categories.some(cat => cat === 'frais' || cat === 'sec')) {
+                    orderRow.column1 = {
+                        type: 'Sec & Frais',
+                        cssClass: 'label-frais-sec'
+                    };
                 }
                 
-                if (hasSurgele) {
-                    const labelKey = `${orderNum}-surgele`;
-                    if (!uniqueLabels.has(labelKey)) {
-                        deliveryLabels.push({
-                            orderNumber: orderNum,
-                            categoryType: 'Surgelé',
-                            cssClass: 'label-surgele'
-                        });
-                        uniqueLabels.add(labelKey);
-                    }
+                // Colonne 2 : Surgelé
+                if (categories.some(cat => cat === 'surgele')) {
+                    orderRow.column2 = {
+                        type: 'Surgelé',
+                        cssClass: 'label-surgele'
+                    };
                 }
+                
+                // Colonne 3 : Viandes fraîches
+                if (categories.some(cat => cat === 'viandes fraiche')) {
+                    orderRow.column3 = {
+                        type: 'Viande fraîche',
+                        cssClass: 'label-viande'
+                    };
+                }
+                
+                // Colonne 4 : Produits critiques
+                if (criticalProducts.length > 0) {
+                    orderRow.column4 = {
+                        type: 'À ne pas oublier',
+                        cssClass: 'label-alert',
+                        products: criticalProducts
+                    };
+                }
+                
+                orderRows.push(orderRow);
             });
 
-            // Debug : Afficher le nombre d'étiquettes uniques générées
-            console.log(`Étiquettes uniques générées : ${deliveryLabels.length}`);
-            console.log('Détail par commande :');
-            const orderCounts = {};
-            deliveryLabels.forEach(label => {
-                if (!orderCounts[label.orderNumber]) {
-                    orderCounts[label.orderNumber] = [];
-                }
-                orderCounts[label.orderNumber].push(label.categoryType);
-            });
-            Object.keys(orderCounts).forEach(order => {
-                console.log(`${order}: ${orderCounts[order].join(', ')}`);
-            });
+            updateStats(criticalProductsCount);
+            displayOrdersSummary(orderData);
+        }
 
-            updateStats();
-            displayOrdersSummary(orderCategories);
+        function detectCriticalProducts(products) {
+            const criticalProducts = [];
+            
+            products.forEach(product => {
+                const productName = product.name.toLowerCase();
+                
+                // Détecter les cartons
+                if (productName.includes('carton') && 
+                    (productName.includes('poulet') || productName.includes('poisson') || productName.includes('banane') || productName.includes('plantain'))) {
+                    criticalProducts.push(`⚠️ ${product.quantity} ${product.name}`);
+                }
+                
+                // Détecter les sacs lourds
+                if (productName.includes('sac') && 
+                    (productName.includes('oignon') || productName.includes('pomme de terre') || productName.includes('riz')) &&
+                    (productName.includes('5kg') || productName.includes('10kg') || productName.includes('20kg') || 
+                     productName.includes('5 kg') || productName.includes('10 kg') || productName.includes('20 kg'))) {
+                    criticalProducts.push(`⚠️ ${product.quantity} ${product.name}`);
+                }
+            });
+            
+            return criticalProducts;
         }
 
         function normalizeCategory(category) {
@@ -657,31 +714,49 @@
             return 'N/A';
         }
 
-        function displayOrdersSummary(orderCategories) {
+        function getProductFromRow(row) {
+            const possibleKeys = [
+                'Lineitem name',
+                'Nom du produit',
+                'Product',
+                'produit',
+                'name'
+            ];
+            
+            for (const key of possibleKeys) {
+                if (row[key]) return row[key];
+            }
+            return 'Produit non spécifié';
+        }
+
+        function getQuantityFromRow(row) {
+            const possibleKeys = [
+                'Lineitem quantity',
+                'Quantité',
+                'Quantity',
+                'quantite',
+                'qty'
+            ];
+            
+            for (const key of possibleKeys) {
+                if (row[key]) return row[key];
+            }
+            return '1';
+        }
+
+        function displayOrdersSummary(orderData) {
             const container = document.getElementById('summaryTable');
             
             let html = '<table class="summary-table">';
-            html += '<thead><tr><th>Commande</th><th>Catégories présentes</th><th>Étiquettes générées</th></tr></thead><tbody>';
+            html += '<thead><tr><th>Commande</th><th>Sec & Frais</th><th>Surgelé</th><th>Viandes</th><th>Produits critiques</th></tr></thead><tbody>';
             
-            Object.keys(orderCategories).sort().forEach(orderNum => {
-                const categories = Array.from(orderCategories[orderNum]);
-                const labels = deliveryLabels.filter(label => label.orderNumber === orderNum);
-                
+            orderRows.forEach(orderRow => {
                 html += '<tr>';
-                html += `<td><strong>${orderNum}</strong></td>`;
-                html += '<td>';
-                categories.forEach(cat => {
-                    const badgeClass = cat === 'surgele' ? 'badge-surgele' : 
-                                     cat === 'viandes fraiche' ? 'badge-viande' : 'badge-frais-sec';
-                    html += `<span class="category-badge ${badgeClass}">${cat}</span>`;
-                });
-                html += '</td>';
-                html += '<td>';
-                labels.forEach(label => {
-                    const badgeClass = label.cssClass.replace('label-', 'badge-');
-                    html += `<span class="category-badge ${badgeClass}">${label.categoryType}</span>`;
-                });
-                html += '</td>';
+                html += `<td><strong>${orderRow.orderNumber}</strong></td>`;
+                html += `<td>${orderRow.column1 ? '✅' : '❌'}</td>`;
+                html += `<td>${orderRow.column2 ? '✅' : '❌'}</td>`;
+                html += `<td>${orderRow.column3 ? '✅' : '❌'}</td>`;
+                html += `<td>${orderRow.column4 ? `${orderRow.column4.products.length} produits` : '❌'}</td>`;
                 html += '</tr>';
             });
             
@@ -690,70 +765,105 @@
             document.getElementById('previewSection').style.display = 'block';
         }
 
-        function updateStats() {
-            const uniqueOrders = new Set(deliveryLabels.map(label => label.orderNumber)).size;
-            const duplicates = parseInt(document.getElementById('duplicateLabels').value) || 1;
-            const totalLabelsWithDuplicates = deliveryLabels.length * duplicates;
+        function updateStats(criticalProductsCount) {
+            const ordersPerPage = parseInt(document.getElementById('ordersPerPage').value) || 10;
+            const maxOrders = parseInt(document.getElementById('maxOrders').value) || orderRows.length;
+            const effectiveOrders = Math.min(orderRows.length, maxOrders);
             
-            totalPages = Math.ceil(totalLabelsWithDuplicates / LABELS_PER_PAGE);
+            totalPages = Math.ceil(effectiveOrders / ordersPerPage);
             
-            document.getElementById('totalOrders').textContent = uniqueOrders;
-            document.getElementById('totalLabels').textContent = totalLabelsWithDuplicates;
+            document.getElementById('totalOrders').textContent = effectiveOrders;
             document.getElementById('totalPages').textContent = totalPages;
+            document.getElementById('criticalProducts').textContent = criticalProductsCount;
+            document.getElementById('ordersPerPageDisplay').textContent = ordersPerPage;
             document.getElementById('stats').style.display = 'grid';
         }
 
         function generateLabels() {
-            if (deliveryLabels.length === 0) {
+            if (orderRows.length === 0) {
                 showMessage('Veuillez d\'abord charger un fichier CSV.', 'error');
                 return;
             }
 
-            const duplicates = parseInt(document.getElementById('duplicateLabels').value) || 1;
-            const maxLabels = parseInt(document.getElementById('maxLabels').value) || deliveryLabels.length;
+            const ordersPerPage = parseInt(document.getElementById('ordersPerPage').value) || 10;
+            const maxOrders = parseInt(document.getElementById('maxOrders').value) || orderRows.length;
+            const effectiveOrders = Math.min(orderRows.length, maxOrders);
             
-            // Créer la liste finale avec duplicatas
-            let finalLabels = [];
-            deliveryLabels.slice(0, maxLabels).forEach(label => {
-                for (let i = 0; i < duplicates; i++) {
-                    finalLabels.push(label);
-                }
-            });
-            
-            totalPages = Math.ceil(finalLabels.length / LABELS_PER_PAGE);
+            totalPages = Math.ceil(effectiveOrders / ordersPerPage);
             currentPage = parseInt(document.getElementById('startPage').value) || 1;
             
-            renderLabelsPage(currentPage, finalLabels);
+            renderLabelsPage(currentPage, orderRows.slice(0, effectiveOrders), ordersPerPage);
             updatePagination();
             
             document.getElementById('printBtn').disabled = false;
             
-            showMessage(`Étiquettes générées: ${finalLabels.length} étiquettes sur ${totalPages} page(s)`, 'success');
+            showMessage(`Étiquettes générées: ${effectiveOrders} commandes sur ${totalPages} page(s)`, 'success');
         }
 
-        function renderLabelsPage(pageNum, labels) {
+        function renderLabelsPage(pageNum, orders, ordersPerPage) {
             const container = document.getElementById('labelsContainer');
             
-            const startIndex = (pageNum - 1) * LABELS_PER_PAGE;
-            const endIndex = Math.min(startIndex + LABELS_PER_PAGE, labels.length);
-            const pageData = labels.slice(startIndex, endIndex);
+            const startIndex = (pageNum - 1) * ordersPerPage;
+            const endIndex = Math.min(startIndex + ordersPerPage, orders.length);
+            const pageOrders = orders.slice(startIndex, endIndex);
             
             let html = '<div class="labels-page">';
             
-            // Générer exactement 40 étiquettes
-            for (let i = 0; i < LABELS_PER_PAGE; i++) {
-                if (i < pageData.length) {
-                    const label = pageData[i];
+            pageOrders.forEach(orderRow => {
+                html += '<div class="order-row">';
+                
+                // Colonne 1 : Sec & Frais
+                if (orderRow.column1) {
                     html += `
-                        <div class="label ${label.cssClass}">
-                            <div class="label-order-number">${label.orderNumber}</div>
-                            <div class="label-category-type">${label.categoryType}</div>
+                        <div class="label ${orderRow.column1.cssClass}">
+                            <div class="label-order-number">${orderRow.orderNumber}</div>
+                            <div class="label-category-type">${orderRow.column1.type}</div>
                         </div>
                     `;
                 } else {
-                    html += '<div class="label"></div>';
+                    html += '<div class="label label-empty"></div>';
                 }
-            }
+                
+                // Colonne 2 : Surgelé
+                if (orderRow.column2) {
+                    html += `
+                        <div class="label ${orderRow.column2.cssClass}">
+                            <div class="label-order-number">${orderRow.orderNumber}</div>
+                            <div class="label-category-type">${orderRow.column2.type}</div>
+                        </div>
+                    `;
+                } else {
+                    html += '<div class="label label-empty"></div>';
+                }
+                
+                // Colonne 3 : Viandes fraîches
+                if (orderRow.column3) {
+                    html += `
+                        <div class="label ${orderRow.column3.cssClass}">
+                            <div class="label-order-number">${orderRow.orderNumber}</div>
+                            <div class="label-category-type">${orderRow.column3.type}</div>
+                        </div>
+                    `;
+                } else {
+                    html += '<div class="label label-empty"></div>';
+                }
+                
+                // Colonne 4 : Produits critiques
+                if (orderRow.column4) {
+                    const productsList = orderRow.column4.products.join('<br>');
+                    html += `
+                        <div class="label ${orderRow.column4.cssClass}">
+                            <div class="label-order-number">${orderRow.orderNumber}</div>
+                            <div class="label-category-type">${orderRow.column4.type}</div>
+                            <div class="label-products-list">${productsList}</div>
+                        </div>
+                    `;
+                } else {
+                    html += '<div class="label label-empty"></div>';
+                }
+                
+                html += '</div>';
+            });
             
             html += '</div>';
             container.innerHTML = html;
@@ -788,59 +898,55 @@
             if (pageNum < 1 || pageNum > totalPages) return;
             currentPage = pageNum;
             
-            const duplicates = parseInt(document.getElementById('duplicateLabels').value) || 1;
-            const maxLabels = parseInt(document.getElementById('maxLabels').value) || deliveryLabels.length;
+            const ordersPerPage = parseInt(document.getElementById('ordersPerPage').value) || 10;
+            const maxOrders = parseInt(document.getElementById('maxOrders').value) || orderRows.length;
+            const effectiveOrders = Math.min(orderRows.length, maxOrders);
             
-            let finalLabels = [];
-            deliveryLabels.slice(0, maxLabels).forEach(label => {
-                for (let i = 0; i < duplicates; i++) {
-                    finalLabels.push(label);
-                }
-            });
-            
-            renderLabelsPage(currentPage, finalLabels);
+            renderLabelsPage(currentPage, orderRows.slice(0, effectiveOrders), ordersPerPage);
             updatePagination();
         }
 
         function printLabels() {
-            if (deliveryLabels.length === 0) {
+            if (orderRows.length === 0) {
                 showMessage('Aucune étiquette à imprimer.', 'error');
                 return;
             }
             
-            const duplicates = parseInt(document.getElementById('duplicateLabels').value) || 1;
-            const maxLabels = parseInt(document.getElementById('maxLabels').value) || deliveryLabels.length;
-            
-            let finalLabels = [];
-            deliveryLabels.slice(0, maxLabels).forEach(label => {
-                for (let i = 0; i < duplicates; i++) {
-                    finalLabels.push(label);
-                }
-            });
+            const ordersPerPage = parseInt(document.getElementById('ordersPerPage').value) || 10;
+            const maxOrders = parseInt(document.getElementById('maxOrders').value) || orderRows.length;
+            const effectiveOrders = Math.min(orderRows.length, maxOrders);
             
             const container = document.getElementById('labelsContainer');
             let allPagesHTML = '';
             
             for (let page = 1; page <= totalPages; page++) {
-                const startIndex = (page - 1) * LABELS_PER_PAGE;
-                const endIndex = Math.min(startIndex + LABELS_PER_PAGE, finalLabels.length);
-                const pageData = finalLabels.slice(startIndex, endIndex);
+                const startIndex = (page - 1) * ordersPerPage;
+                const endIndex = Math.min(startIndex + ordersPerPage, effectiveOrders);
+                const pageOrders = orderRows.slice(startIndex, endIndex);
                 
                 allPagesHTML += '<div class="labels-page">';
                 
-                for (let i = 0; i < LABELS_PER_PAGE; i++) {
-                    if (i < pageData.length) {
-                        const label = pageData[i];
-                        allPagesHTML += `
-                            <div class="label ${label.cssClass}">
-                                <div class="label-order-number">${label.orderNumber}</div>
-                                <div class="label-category-type">${label.categoryType}</div>
-                            </div>
-                        `;
-                    } else {
-                        allPagesHTML += '<div class="label"></div>';
-                    }
-                }
+                pageOrders.forEach(orderRow => {
+                    allPagesHTML += '<div class="order-row">';
+                    
+                    // Les 4 colonnes...
+                    [orderRow.column1, orderRow.column2, orderRow.column3, orderRow.column4].forEach(column => {
+                        if (column) {
+                            const productsList = column.products ? column.products.join('<br>') : '';
+                            allPagesHTML += `
+                                <div class="label ${column.cssClass}">
+                                    <div class="label-order-number">${orderRow.orderNumber}</div>
+                                    <div class="label-category-type">${column.type}</div>
+                                    ${productsList ? `<div class="label-products-list">${productsList}</div>` : ''}
+                                </div>
+                            `;
+                        } else {
+                            allPagesHTML += '<div class="label label-empty"></div>';
+                        }
+                    });
+                    
+                    allPagesHTML += '</div>';
+                });
                 
                 allPagesHTML += '</div>';
             }
@@ -850,7 +956,8 @@
             setTimeout(() => {
                 window.print();
                 setTimeout(() => {
-                    renderLabelsPage(currentPage, finalLabels);
+                    const ordersPerPage = parseInt(document.getElementById('ordersPerPage').value) || 10;
+                    renderLabelsPage(currentPage, orderRows.slice(0, effectiveOrders), ordersPerPage);
                 }, 1000);
             }, 100);
         }
@@ -872,14 +979,20 @@
                 {
                     'Name': '#1488',
                     'Lineitem quantity': '1',
-                    'Lineitem name': 'Épices curry - 100g',
-                    'categorie_conservation': 'sec'
+                    'Lineitem name': 'Carton de poulet entier - 10kg',
+                    'categorie_conservation': 'surgelé'
                 },
                 {
                     'Name': '#1489',
                     'Lineitem quantity': '1',
                     'Lineitem name': 'Poisson Chat entier - 3 kg',
                     'categorie_conservation': 'viandes fraiche'
+                },
+                {
+                    'Name': '#1489',
+                    'Lineitem quantity': '2',
+                    'Lineitem name': 'Sac de riz jasmin - 10kg',
+                    'categorie_conservation': 'sec'
                 },
                 {
                     'Name': '#1490',
@@ -895,9 +1008,9 @@
                 },
                 {
                     'Name': '#1491',
-                    'Lineitem quantity': '1',
-                    'Lineitem name': 'Riz jasmin - 5kg',
-                    'categorie_conservation': 'sec'
+                    'Lineitem quantity': '3',
+                    'Lineitem name': 'Sac d\'oignons - 5kg',
+                    'categorie_conservation': 'frais'
                 }
             ];
             
