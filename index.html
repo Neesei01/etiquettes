@@ -1,4 +1,21 @@
-<!DOCTYPE html>
+];
+            
+            showMessage('✅ Données d\'exemple chargées! Cliquez sur "Générer les étiquettes".', 'success');
+            updateStats();
+        }
+
+        function showMessage(text, type) {
+            const container = document.getElementById('messages');
+            const className = type === 'error' ? 'error' : 'success';
+            container.innerHTML = `<div class="${className}">${text}</div>`;
+            
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html><!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -469,15 +486,26 @@
 
         function handleFileSelect(event) {
             const file = event.target.files[0];
-            if (!file) return;
+            if (!file) {
+                console.log('Aucun fichier sélectionné');
+                return;
+            }
+
+            console.log('Fichier sélectionné:', file.name, 'Taille:', file.size, 'Type:', file.type);
 
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
+                    console.log('Fichier lu avec succès, longueur:', e.target.result.length);
                     parseCSV(e.target.result);
                 } catch (error) {
+                    console.error('Erreur:', error);
                     showMessage('Erreur lors de la lecture du fichier: ' + error.message, 'error');
                 }
+            };
+            reader.onerror = function(error) {
+                console.error('Erreur de lecture:', error);
+                showMessage('Erreur lors de la lecture du fichier', 'error');
             };
             reader.readAsText(file, 'UTF-8');
         }
@@ -849,3 +877,8 @@
                     'categorie_conservation': 'frais'
                 },
                 {
+                    'Name': '#1392',
+                    'Lineitem quantity': '7',
+                    'Lineitem name': 'Bobolo / Bâtons de maniocs - Petit',
+                    'categorie_conservation': 'frais'
+                }
