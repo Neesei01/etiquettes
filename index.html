@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Générateur d'Étiquettes Avery J8654</title>
+    <title>Générateur d'Étiquettes Format Personnalisé</title>
     <style>
         * {
             margin: 0;
@@ -145,6 +145,10 @@
             transform: none;
         }
 
+        .preview-section {
+            margin-top: 30px;
+        }
+
         .stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -171,7 +175,7 @@
             margin-top: 5px;
         }
 
-        /* FORMAT EXACT AVERY J8654 */
+        /* Styles critiques pour le format personnalisé */
         @page {
             size: A4;
             margin: 0;
@@ -201,30 +205,33 @@
             }
         }
 
-        /* Page A4 avec marges exactes : 2.1cm haut/bas, 0.8cm gauche/droite */
+        /* Format personnalisé: 4 colonnes × 10 lignes = 40 étiquettes */
         .labels-page {
             width: 210mm;
             height: 297mm;
             margin: 20px auto;
             background: white;
             display: grid;
-            grid-template-columns: repeat(4, 48mm); /* 4 colonnes de 4.8cm exactement */
-            grid-template-rows: repeat(10, 20mm);   /* 10 lignes de 2cm exactement */
-            gap: 0; /* AUCUN ESPACE entre les étiquettes */
+            grid-template-columns: repeat(4, 48mm);
+            grid-template-rows: repeat(10, 25mm);
+            gap: 0; /* Pas d'espace entre les étiquettes */
+            justify-content: center;
+            align-content: start;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             page-break-after: always;
-            /* Marges exactes selon vos spécifications */
-            padding: 21mm 8mm; /* 2.1cm haut/bas, 0.8cm gauche/droite */
-            justify-content: center;
-            align-content: center;
+            /* Marges personnalisées */
+            padding-left: 8mm;   /* 0.8cm à gauche */
+            padding-right: 8mm;  /* 0.8cm à droite */
+            padding-top: 21mm;   /* 2.1cm en haut */
+            padding-bottom: 21mm; /* 2.1cm en bas */
         }
 
-        /* Étiquette individuelle - dimensions exactes 4.8cm × 2cm */
+        /* Étiquette individuelle - dimensions personnalisées */
         .label {
-            width: 48mm;   /* 4.8cm */
-            height: 20mm;  /* 2cm */
-            border: 1px solid #ddd;
-            padding: 1.5mm;
+            width: 48mm;  /* 4.8cm de largeur */
+            height: 25mm; /* 2.5cm de hauteur */
+            border: 1px solid #e0e0e0;
+            padding: 2mm;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
@@ -237,12 +244,12 @@
 
         .label-category {
             font-weight: bold;
-            font-size: 6pt;
+            font-size: 7pt;
             color: #2c3e50;
             text-transform: uppercase;
             text-align: center;
             background: #f8f9fa;
-            padding: 0.3mm 0;
+            padding: 0.5mm 0;
             border-radius: 1mm;
             margin-bottom: 0.5mm;
             line-height: 1;
@@ -254,23 +261,23 @@
             align-items: center;
             justify-content: center;
             font-weight: 600;
-            font-size: 7pt;
+            font-size: 8pt;
             color: #2c3e50;
             text-align: center;
-            line-height: 1;
+            line-height: 1.1;
             word-wrap: break-word;
             overflow-wrap: break-word;
             hyphens: auto;
         }
 
         .label-order {
-            font-size: 9pt;
+            font-size: 11pt;
             color: #000;
             text-align: center;
             font-weight: bold;
             margin-top: 0.5mm;
             line-height: 1;
-            letter-spacing: 0.1mm;
+            letter-spacing: 0.2mm;
         }
 
         /* Codes couleur par catégorie */
@@ -293,6 +300,13 @@
             background-color: #fff3e0; 
             color: #ef6c00; 
             border: 1px solid #ffcc02;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            margin: 40px 0;
         }
 
         .pagination {
@@ -333,39 +347,47 @@
             border-left: 4px solid #388e3c;
         }
 
-        /* Debug mode pour vérifier l'alignement */
+        /* Debug - pour vérifier l'alignement */
         .debug-mode .labels-page {
             background: #f0f0f0;
-            border: 2px solid #ff0000;
         }
         
         .debug-mode .label {
+            border: 2px solid #ff0000;
+        }
+
+        /* Affichage des dimensions en mode debug */
+        .debug-mode .labels-page::before {
+            content: "Marges: Haut/Bas: 2.1cm, Gauche/Droite: 0.8cm";
+            position: absolute;
+            top: 5px;
+            left: 10px;
+            font-size: 10pt;
+            color: #ff0000;
+            background: white;
+            padding: 5px;
             border: 1px solid #ff0000;
         }
 
-        .debug-mode .label:nth-child(1) {
-            background: rgba(255, 0, 0, 0.1);
-        }
-        
-        .debug-mode .label:nth-child(4) {
-            background: rgba(0, 255, 0, 0.1);
-        }
-        
-        .debug-mode .label:nth-child(37) {
-            background: rgba(0, 0, 255, 0.1);
-        }
-        
-        .debug-mode .label:nth-child(40) {
-            background: rgba(255, 255, 0, 0.1);
+        .debug-mode .labels-page::after {
+            content: "Étiquettes: 4.8cm × 2.5cm, Sans espaces";
+            position: absolute;
+            bottom: 5px;
+            left: 10px;
+            font-size: 10pt;
+            color: #ff0000;
+            background: white;
+            padding: 5px;
+            border: 1px solid #ff0000;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🏷️ Générateur d'Étiquettes Avery J8654</h1>
-            <p>Format exact: 4.8cm × 2cm - 4 colonnes × 10 lignes = 40 étiquettes</p>
-            <p>Marges: 2.1cm haut/bas, 0.8cm gauche/droite - AUCUN ESPACE entre étiquettes</p>
+            <h1>🏷️ Générateur d'Étiquettes Format Personnalisé - GrandExotique</h1>
+            <p>Format: 4 colonnes × 10 lignes = 40 étiquettes (4.8 × 2.5 cm) sans espaces</p>
+            <p>Marges: 2.1cm (haut/bas) - 0.8cm (gauche/droite)</p>
         </div>
 
         <div class="main-content">
@@ -378,17 +400,18 @@
                     </label>
                     <input type="file" id="csvFile" accept=".csv" />
                 </div>
-                <p><small>Format attendu : Numéro de commande, Quantité, Nom du produit, Catégorie de conservation</small></p>
+                <p><small>Format attendu : Numéro de commande, Quantité, Nom du produit, Catégorie de conservation<br>
+                Layout : 4 colonnes × 10 lignes = 40 étiquettes par page A4</small></p>
             </div>
 
             <div class="controls">
                 <div class="control-group">
                     <label for="fontSize">Taille police produit (pt)</label>
-                    <input type="number" id="fontSize" value="7" min="5" max="10" />
+                    <input type="number" id="fontSize" value="8" min="6" max="12" />
                 </div>
                 <div class="control-group">
                     <label for="orderFontSize">Taille police commande (pt)</label>
-                    <input type="number" id="orderFontSize" value="9" min="6" max="12" />
+                    <input type="number" id="orderFontSize" value="11" min="8" max="16" />
                 </div>
                 <div class="control-group">
                     <label for="startPage">Page de départ</label>
@@ -405,7 +428,7 @@
                 <button class="btn" onclick="printLabels()" id="printBtn" disabled>🖨️ Imprimer</button>
                 <button class="btn" onclick="loadSampleData()">📝 Charger données test</button>
                 <label>
-                    <input type="checkbox" id="debugMode" onchange="toggleDebugMode()"> Mode debug (coins colorés)
+                    <input type="checkbox" id="debugMode" onchange="toggleDebugMode()"> Mode debug
                 </label>
             </div>
 
@@ -438,7 +461,7 @@
         let csvData = [];
         let currentPage = 1;
         let totalPages = 0;
-        const LABELS_PER_PAGE = 40; // Exactement 40 pour Avery J8654
+        const LABELS_PER_PAGE = 40; // Exactement 40 pour le format personnalisé
         const COLS_PER_PAGE = 4;    // 4 colonnes
         const ROWS_PER_PAGE = 10;   // 10 lignes
 
@@ -826,17 +849,3 @@
                     'categorie_conservation': 'frais'
                 },
                 {
-                    'Name': '#1392',
-                    'Lineitem quantity': '7',
-                    'Lineitem name': 'Bobolo / Bâtons de maniocs - Petit',
-                    'categorie_conservation': 'frais'
-                }
-            ];
-            
-            showMessage('✅ Données d\'exemple chargées! Cliquez sur "Générer les étiquettes".', 'success');
-            updateStats();
-        }
-
-        function showMessage(text, type) {
-            const container = document.getElementById('messages');
-            const className = type === 'error' ? 'error
