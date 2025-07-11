@@ -145,10 +145,6 @@
             transform: none;
         }
 
-        .preview-section {
-            margin-top: 30px;
-        }
-
         .stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -175,7 +171,7 @@
             margin-top: 5px;
         }
 
-        /* Styles critiques pour le format Avery J8654 */
+        /* FORMAT EXACT AVERY J8654 */
         @page {
             size: A4;
             margin: 0;
@@ -205,33 +201,30 @@
             }
         }
 
-        /* Format exact Avery J8654 corrigé: 4 colonnes × 10 lignes = 40 étiquettes */
+        /* Page A4 avec marges exactes : 2.1cm haut/bas, 0.8cm gauche/droite */
         .labels-page {
             width: 210mm;
             height: 297mm;
             margin: 20px auto;
             background: white;
             display: grid;
-            grid-template-columns: repeat(4, 48.5mm);
-            grid-template-rows: repeat(10, 25.4mm);
-            gap: 2mm 2.5mm;
-            justify-content: center;
-            align-content: start;
+            grid-template-columns: repeat(4, 48mm); /* 4 colonnes de 4.8cm exactement */
+            grid-template-rows: repeat(10, 20mm);   /* 10 lignes de 2cm exactement */
+            gap: 0; /* AUCUN ESPACE entre les étiquettes */
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             page-break-after: always;
-            /* Marges ajustées pour l'alignement exact */
-            padding-left: 6mm;
-            padding-right: 6mm;
-            padding-top: 12mm;
-            padding-bottom: 13mm;
+            /* Marges exactes selon vos spécifications */
+            padding: 21mm 8mm; /* 2.1cm haut/bas, 0.8cm gauche/droite */
+            justify-content: center;
+            align-content: center;
         }
 
-        /* Étiquette individuelle - dimensions exactes Avery J8654 corrigées */
+        /* Étiquette individuelle - dimensions exactes 4.8cm × 2cm */
         .label {
-            width: 48.5mm;
-            height: 25.4mm;
-            border: 1px solid #e0e0e0;
-            padding: 2mm;
+            width: 48mm;   /* 4.8cm */
+            height: 20mm;  /* 2cm */
+            border: 1px solid #ddd;
+            padding: 1.5mm;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
@@ -244,12 +237,12 @@
 
         .label-category {
             font-weight: bold;
-            font-size: 7pt;
+            font-size: 6pt;
             color: #2c3e50;
             text-transform: uppercase;
             text-align: center;
             background: #f8f9fa;
-            padding: 0.5mm 0;
+            padding: 0.3mm 0;
             border-radius: 1mm;
             margin-bottom: 0.5mm;
             line-height: 1;
@@ -261,23 +254,23 @@
             align-items: center;
             justify-content: center;
             font-weight: 600;
-            font-size: 8pt;
+            font-size: 7pt;
             color: #2c3e50;
             text-align: center;
-            line-height: 1.1;
+            line-height: 1;
             word-wrap: break-word;
             overflow-wrap: break-word;
             hyphens: auto;
         }
 
         .label-order {
-            font-size: 11pt;
+            font-size: 9pt;
             color: #000;
             text-align: center;
             font-weight: bold;
             margin-top: 0.5mm;
             line-height: 1;
-            letter-spacing: 0.2mm;
+            letter-spacing: 0.1mm;
         }
 
         /* Codes couleur par catégorie */
@@ -300,13 +293,6 @@
             background-color: #fff3e0; 
             color: #ef6c00; 
             border: 1px solid #ffcc02;
-        }
-
-        .no-data {
-            text-align: center;
-            color: #666;
-            font-style: italic;
-            margin: 40px 0;
         }
 
         .pagination {
@@ -347,21 +333,39 @@
             border-left: 4px solid #388e3c;
         }
 
-        /* Debug - pour vérifier l'alignement */
+        /* Debug mode pour vérifier l'alignement */
         .debug-mode .labels-page {
             background: #f0f0f0;
+            border: 2px solid #ff0000;
         }
         
         .debug-mode .label {
-            border: 2px solid #ff0000;
+            border: 1px solid #ff0000;
+        }
+
+        .debug-mode .label:nth-child(1) {
+            background: rgba(255, 0, 0, 0.1);
+        }
+        
+        .debug-mode .label:nth-child(4) {
+            background: rgba(0, 255, 0, 0.1);
+        }
+        
+        .debug-mode .label:nth-child(37) {
+            background: rgba(0, 0, 255, 0.1);
+        }
+        
+        .debug-mode .label:nth-child(40) {
+            background: rgba(255, 255, 0, 0.1);
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🏷️ Générateur d'Étiquettes Avery J8654 - GrandExotique </h1>
-            <p>Format exact: 4 colonnes × 10 lignes = 40 étiquettes (48.5 × 25.4 mm) - Dimensions Corrigées</p>
+            <h1>🏷️ Générateur d'Étiquettes Avery J8654</h1>
+            <p>Format exact: 4.8cm × 2cm - 4 colonnes × 10 lignes = 40 étiquettes</p>
+            <p>Marges: 2.1cm haut/bas, 0.8cm gauche/droite - AUCUN ESPACE entre étiquettes</p>
         </div>
 
         <div class="main-content">
@@ -374,18 +378,17 @@
                     </label>
                     <input type="file" id="csvFile" accept=".csv" />
                 </div>
-                <p><small>Format attendu : Numéro de commande, Quantité, Nom du produit, Catégorie de conservation<br>
-                Layout : 4 colonnes × 10 lignes = 40 étiquettes par page A4</small></p>
+                <p><small>Format attendu : Numéro de commande, Quantité, Nom du produit, Catégorie de conservation</small></p>
             </div>
 
             <div class="controls">
                 <div class="control-group">
                     <label for="fontSize">Taille police produit (pt)</label>
-                    <input type="number" id="fontSize" value="8" min="6" max="12" />
+                    <input type="number" id="fontSize" value="7" min="5" max="10" />
                 </div>
                 <div class="control-group">
                     <label for="orderFontSize">Taille police commande (pt)</label>
-                    <input type="number" id="orderFontSize" value="11" min="8" max="16" />
+                    <input type="number" id="orderFontSize" value="9" min="6" max="12" />
                 </div>
                 <div class="control-group">
                     <label for="startPage">Page de départ</label>
@@ -402,7 +405,7 @@
                 <button class="btn" onclick="printLabels()" id="printBtn" disabled>🖨️ Imprimer</button>
                 <button class="btn" onclick="loadSampleData()">📝 Charger données test</button>
                 <label>
-                    <input type="checkbox" id="debugMode" onchange="toggleDebugMode()"> Mode debug
+                    <input type="checkbox" id="debugMode" onchange="toggleDebugMode()"> Mode debug (coins colorés)
                 </label>
             </div>
 
@@ -836,13 +839,4 @@
 
         function showMessage(text, type) {
             const container = document.getElementById('messages');
-            const className = type === 'error' ? 'error' : 'success';
-            container.innerHTML = `<div class="${className}">${text}</div>`;
-            
-            setTimeout(() => {
-                container.innerHTML = '';
-            }, 5000);
-        }
-    </script>
-</body>
-</html>
+            const className = type === 'error' ? 'error
