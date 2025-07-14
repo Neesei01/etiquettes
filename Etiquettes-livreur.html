@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Générateur d'Étiquettes Livraison - Ordre d'Itinéraire</title>
+    <title>Générateur d'Étiquettes Livraison - Organisation par Commande</title>
     <style>
         * {
             margin: 0;
@@ -145,19 +145,6 @@
             transform: none;
         }
 
-        .route-order-section {
-            background: #e8f5e8;
-            border-radius: 15px;
-            padding: 20px;
-            margin: 20px 0;
-            border-left: 4px solid #4caf50;
-        }
-
-        .route-order-section h3 {
-            color: #2e7d32;
-            margin-bottom: 15px;
-        }
-
         .preview-section {
             margin-top: 30px;
             background: #f8f9fa;
@@ -218,13 +205,18 @@
             background: #f8f9fa;
         }
 
-        .delivery-order {
-            font-weight: bold;
-            color: #4facfe;
-            background: #e3f2fd;
+        .category-badge {
+            display: inline-block;
             padding: 4px 8px;
-            border-radius: 4px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin: 2px;
         }
+
+        .badge-frais-sec { background: #e8f5e8; color: #2e7d32; }
+        .badge-viande { background: #ffebee; color: #c62828; }
+        .badge-surgele { background: #e3f2fd; color: #1565c0; }
 
         /* Styles pour l'impression */
         @page {
@@ -256,6 +248,7 @@
             }
         }
 
+        /* Layout spécial : 1 commande par ligne, 4 colonnes */
         .labels-page {
             width: 210mm;
             height: 297mm;
@@ -271,6 +264,7 @@
             gap: 2mm;
         }
 
+        /* Ligne de commande : 4 étiquettes côte à côte */
         .order-row {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -279,6 +273,7 @@
             width: 100%;
         }
 
+        /* Étiquette individuelle */
         .label {
             width: 48.5mm;
             height: 25.4mm;
@@ -300,14 +295,6 @@
             font-weight: bold;
             font-size: 12pt;
             color: #000;
-            margin-bottom: 1mm;
-            line-height: 1;
-        }
-
-        .label-delivery-order {
-            font-size: 8pt;
-            color: #4facfe;
-            font-weight: bold;
             margin-bottom: 1mm;
             line-height: 1;
         }
@@ -413,8 +400,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🚚 Étiquettes Livraison - Ordre d'Itinéraire</h1>
-            <p>Format : Commandes triées par ordre de livraison (1er livré = 1ère ligne)</p>
+            <h1>🚚 Étiquettes Livraison - Organisation par Commande</h1>
+            <p>Format : 1 commande par ligne, 4 colonnes ordonnées (Sec/Frais • Surgelé • Viandes • Produits critiques)</p>
         </div>
 
         <div class="main-content">
@@ -428,19 +415,13 @@
                     <input type="file" id="csvFile" accept=".csv" />
                 </div>
                 <p><small>Format attendu : Numéro de commande, Quantité, Nom du produit, Catégorie de conservation</small></p>
-            </div>
-
-            <div class="route-order-section">
-                <h3>🗺️ Ordre d'itinéraire automatique</h3>
-                <p>Chargez le fichier d'ordre généré par votre algorithme d'itinéraire Python pour trier automatiquement les étiquettes.</p>
-                <div class="file-input">
-                    <label for="routeFile" class="file-label">
-                        🗺️ Charger fichier d'ordre d'itinéraire (optionnel)
-                    </label>
-                    <input type="file" id="routeFile" accept=".csv,.txt" />
+                <div style="background: #e8f5e8; color: #2e7d32; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #4caf50;">
+                    <strong>📋 Organisation par ligne :</strong>
+                    <br>• <strong>Colonne 1 :</strong> Sec & Frais
+                    <br>• <strong>Colonne 2 :</strong> Surgelé
+                    <br>• <strong>Colonne 3 :</strong> Viandes fraîches
+                    <br>• <strong>Colonne 4 :</strong> ⚠️ Produits à ne pas oublier (cartons, sacs lourds)
                 </div>
-                <p><small>💡 <strong>Format accepté :</strong> Fichier CSV ou TXT avec les numéros de commandes dans l'ordre de livraison</small></p>
-                <div id="routeStatus" style="margin-top: 10px;"></div>
             </div>
 
             <div class="controls">
@@ -491,7 +472,7 @@
             <div id="messages"></div>
 
             <div id="previewSection" class="preview-section" style="display: none;">
-                <h3>📋 Aperçu des commandes organisées (ordre de livraison)</h3>
+                <h3>📋 Aperçu des commandes organisées</h3>
                 <div id="summaryTable"></div>
             </div>
 
@@ -505,10 +486,8 @@
         let orderRows = [];
         let currentPage = 1;
         let totalPages = 0;
-        let routeOrder = [];
 
         document.getElementById('csvFile').addEventListener('change', handleFileSelect);
-        document.getElementById('routeFile').addEventListener('change', handleRouteFileSelect);
 
         function handleFileSelect(event) {
             const file = event.target.files[0];
@@ -577,75 +556,7 @@
             return result;
         }
 
-        function handleRouteFileSelect(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    parseRouteFile(e.target.result);
-                } catch (error) {
-                    showMessage('Erreur lors de la lecture du fichier d\'itinéraire: ' + error.message, 'error');
-                }
-            };
-            reader.readAsText(file, 'UTF-8');
-        }
-
-        function parseRouteFile(fileContent) {
-            const lines = fileContent.split('\n').filter(line => line.trim());
-            routeOrder = [];
-            
-            // Essayer de détecter le format automatiquement
-            if (fileContent.includes(',')) {
-                // Format CSV - peut être une ligne ou plusieurs lignes
-                lines.forEach(line => {
-                    const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
-                    values.forEach(value => {
-                        if (value && value !== '' && !routeOrder.includes(value)) {
-                            routeOrder.push(value);
-                        }
-                    });
-                });
-            } else {
-                // Format ligne par ligne
-                lines.forEach(line => {
-                    const value = line.trim().replace(/"/g, '');
-                    if (value && value !== '' && !routeOrder.includes(value)) {
-                        routeOrder.push(value);
-                    }
-                });
-            }
-            
-            if (routeOrder.length === 0) {
-                showMessage('Aucun ordre de commande trouvé dans le fichier.', 'error');
-                return;
-            }
-            
-            // Afficher le statut
-            const statusDiv = document.getElementById('routeStatus');
-            statusDiv.innerHTML = `
-                <div style="background: #e8f5e8; color: #2e7d32; padding: 10px; border-radius: 8px; border-left: 4px solid #4caf50;">
-                    ✅ Ordre d'itinéraire chargé: ${routeOrder.length} commandes<br>
-                    <small>Ordre: ${routeOrder.slice(0, 5).join(', ')}${routeOrder.length > 5 ? '...' : ''}</small>
-                </div>
-            `;
-            
-            // Reprocesser les données si le CSV est déjà chargé
-            if (csvData.length > 0) {
-                processOrdersData();
-                showMessage(`✅ Ordre d'itinéraire appliqué: ${routeOrder.length} commandes`, 'success');
-            }
-        }
-
-        function parseRouteOrder() {
-            return routeOrder;
-        }
-
         function processOrdersData() {
-            // Récupérer l'ordre d'itinéraire s'il est défini
-            const customRouteOrder = parseRouteOrder();
-            
             // Grouper les données par commande
             const orderData = {};
             
@@ -674,44 +585,11 @@
                 });
             });
 
-            // Créer la liste ordonnée des commandes
-            let orderedOrderNumbers;
-            if (customRouteOrder.length > 0) {
-                // Utiliser l'ordre de l'itinéraire
-                const availableOrders = Object.keys(orderData);
-                orderedOrderNumbers = [];
-                
-                // Ajouter les commandes dans l'ordre spécifié par l'itinéraire
-                customRouteOrder.forEach(orderNum => {
-                    if (availableOrders.includes(orderNum)) {
-                        orderedOrderNumbers.push(orderNum);
-                    }
-                });
-                
-                // Ajouter les commandes restantes non spécifiées dans l'itinéraire
-                availableOrders.forEach(orderNum => {
-                    if (!orderedOrderNumbers.includes(orderNum)) {
-                        orderedOrderNumbers.push(orderNum);
-                    }
-                });
-            } else {
-                // Utiliser l'ordre d'apparition dans le CSV
-                const seenOrders = new Set();
-                orderedOrderNumbers = [];
-                csvData.forEach(row => {
-                    const orderNum = getOrderFromRow(row);
-                    if (!seenOrders.has(orderNum)) {
-                        seenOrders.add(orderNum);
-                        orderedOrderNumbers.push(orderNum);
-                    }
-                });
-            }
-
-            // Créer les lignes d'étiquettes organisées dans l'ordre
+            // Créer les lignes d'étiquettes organisées
             orderRows = [];
             let criticalProductsCount = 0;
             
-            orderedOrderNumbers.forEach((orderNum, index) => {
+            Object.keys(orderData).sort().forEach(orderNum => {
                 const data = orderData[orderNum];
                 const categories = Array.from(data.categories);
                 
@@ -721,10 +599,9 @@
                     criticalProductsCount += criticalProducts.length;
                 }
                 
-                // Créer la ligne avec 4 colonnes + ordre de livraison
+                // Créer la ligne avec 4 colonnes
                 const orderRow = {
                     orderNumber: orderNum,
-                    deliveryOrder: index + 1, // Ordre de livraison (1er, 2ème, etc.)
                     column1: null, // Sec & Frais
                     column2: null, // Surgelé
                     column3: null, // Viandes fraîches
@@ -871,11 +748,10 @@
             const container = document.getElementById('summaryTable');
             
             let html = '<table class="summary-table">';
-            html += '<thead><tr><th>Ordre livraison</th><th>Commande</th><th>Sec & Frais</th><th>Surgelé</th><th>Viandes</th><th>Produits critiques</th></tr></thead><tbody>';
+            html += '<thead><tr><th>Commande</th><th>Sec & Frais</th><th>Surgelé</th><th>Viandes</th><th>Produits critiques</th></tr></thead><tbody>';
             
             orderRows.forEach(orderRow => {
                 html += '<tr>';
-                html += `<td><span class="delivery-order">${orderRow.deliveryOrder}</span></td>`;
                 html += `<td><strong>${orderRow.orderNumber}</strong></td>`;
                 html += `<td>${orderRow.column1 ? '✅' : '❌'}</td>`;
                 html += `<td>${orderRow.column2 ? '✅' : '❌'}</td>`;
@@ -889,278 +765,268 @@
             document.getElementById('previewSection').style.display = 'block';
         }
 
-      function updateStats(criticalProductsCount) {
-           const ordersPerPage = parseInt(document.getElementById('ordersPerPage').value) || 10;
-           const maxOrders = parseInt(document.getElementById('maxOrders').value) || orderRows.length;
-           const effectiveOrders = Math.min(orderRows.length, maxOrders);
-           
-           totalPages = Math.ceil(effectiveOrders / ordersPerPage);
-           
-           document.getElementById('totalOrders').textContent = effectiveOrders;
-           document.getElementById('totalPages').textContent = totalPages;
-           document.getElementById('criticalProducts').textContent = criticalProductsCount;
-           document.getElementById('ordersPerPageDisplay').textContent = ordersPerPage;
-           document.getElementById('stats').style.display = 'grid';
-       }
+        function updateStats(criticalProductsCount) {
+            const ordersPerPage = parseInt(document.getElementById('ordersPerPage').value) || 10;
+            const maxOrders = parseInt(document.getElementById('maxOrders').value) || orderRows.length;
+            const effectiveOrders = Math.min(orderRows.length, maxOrders);
+            
+            totalPages = Math.ceil(effectiveOrders / ordersPerPage);
+            
+            document.getElementById('totalOrders').textContent = effectiveOrders;
+            document.getElementById('totalPages').textContent = totalPages;
+            document.getElementById('criticalProducts').textContent = criticalProductsCount;
+            document.getElementById('ordersPerPageDisplay').textContent = ordersPerPage;
+            document.getElementById('stats').style.display = 'grid';
+        }
 
-       function generateLabels() {
-           if (orderRows.length === 0) {
-               showMessage('Veuillez d\'abord charger un fichier CSV.', 'error');
-               return;
-           }
+        function generateLabels() {
+            if (orderRows.length === 0) {
+                showMessage('Veuillez d\'abord charger un fichier CSV.', 'error');
+                return;
+            }
 
-           const ordersPerPage = parseInt(document.getElementById('ordersPerPage').value) || 10;
-           const maxOrders = parseInt(document.getElementById('maxOrders').value) || orderRows.length;
-           const effectiveOrders = Math.min(orderRows.length, maxOrders);
-           
-           totalPages = Math.ceil(effectiveOrders / ordersPerPage);
-           currentPage = parseInt(document.getElementById('startPage').value) || 1;
-           
-           renderLabelsPage(currentPage, orderRows.slice(0, effectiveOrders), ordersPerPage);
-           updatePagination();
-           
-           document.getElementById('printBtn').disabled = false;
-           
-           let orderMessage = 'Étiquettes générées dans l\'ordre d\'apparition du CSV';
-           if (routeOrder.length > 0) {
-               orderMessage = 'Étiquettes générées dans l\'ordre d\'itinéraire optimisé';
-           }
-           
-           showMessage(`${orderMessage}: ${effectiveOrders} commandes sur ${totalPages} page(s)`, 'success');
-       }
+            const ordersPerPage = parseInt(document.getElementById('ordersPerPage').value) || 10;
+            const maxOrders = parseInt(document.getElementById('maxOrders').value) || orderRows.length;
+            const effectiveOrders = Math.min(orderRows.length, maxOrders);
+            
+            totalPages = Math.ceil(effectiveOrders / ordersPerPage);
+            currentPage = parseInt(document.getElementById('startPage').value) || 1;
+            
+            renderLabelsPage(currentPage, orderRows.slice(0, effectiveOrders), ordersPerPage);
+            updatePagination();
+            
+            document.getElementById('printBtn').disabled = false;
+            
+            showMessage(`Étiquettes générées: ${effectiveOrders} commandes sur ${totalPages} page(s)`, 'success');
+        }
 
-       function renderLabelsPage(pageNum, orders, ordersPerPage) {
-           const container = document.getElementById('labelsContainer');
-           
-           const startIndex = (pageNum - 1) * ordersPerPage;
-           const endIndex = Math.min(startIndex + ordersPerPage, orders.length);
-           const pageOrders = orders.slice(startIndex, endIndex);
-           
-           let html = '<div class="labels-page">';
-           
-           pageOrders.forEach(orderRow => {
-               html += '<div class="order-row">';
-               
-               // Colonne 1 : Sec & Frais
-               if (orderRow.column1) {
-                   html += `
-                       <div class="label ${orderRow.column1.cssClass}">
-                           <div class="label-delivery-order">Livraison ${orderRow.deliveryOrder}</div>
-                           <div class="label-order-number">${orderRow.orderNumber}</div>
-                           <div class="label-category-type">${orderRow.column1.type}</div>
-                       </div>
-                   `;
-               } else {
-                   html += '<div class="label label-empty"></div>';
-               }
-               
-               // Colonne 2 : Surgelé
-               if (orderRow.column2) {
-                   html += `
-                       <div class="label ${orderRow.column2.cssClass}">
-                           <div class="label-delivery-order">Livraison ${orderRow.deliveryOrder}</div>
-                           <div class="label-order-number">${orderRow.orderNumber}</div>
-                           <div class="label-category-type">${orderRow.column2.type}</div>
-                       </div>
-                   `;
-               } else {
-                   html += '<div class="label label-empty"></div>';
-               }
-               
-               // Colonne 3 : Viandes fraîches
-               if (orderRow.column3) {
-                   html += `
-                       <div class="label ${orderRow.column3.cssClass}">
-                           <div class="label-delivery-order">Livraison ${orderRow.deliveryOrder}</div>
-                           <div class="label-order-number">${orderRow.orderNumber}</div>
-                           <div class="label-category-type">${orderRow.column3.type}</div>
-                       </div>
-                   `;
-               } else {
-                   html += '<div class="label label-empty"></div>';
-               }
-               
-               // Colonne 4 : Produits critiques
-               if (orderRow.column4) {
-                   const productsList = orderRow.column4.products.join('<br>');
-                   html += `
-                       <div class="label ${orderRow.column4.cssClass}">
-                           <div class="label-delivery-order">Livraison ${orderRow.deliveryOrder}</div>
-                           <div class="label-order-number">${orderRow.orderNumber}</div>
-                           <div class="label-category-type">${orderRow.column4.type}</div>
-                           <div class="label-products-list">${productsList}</div>
-                       </div>
-                   `;
-               } else {
-                   html += '<div class="label label-empty"></div>';
-               }
-               
-               html += '</div>';
-           });
-           
-           html += '</div>';
-           container.innerHTML = html;
-       }
+        function renderLabelsPage(pageNum, orders, ordersPerPage) {
+            const container = document.getElementById('labelsContainer');
+            
+            const startIndex = (pageNum - 1) * ordersPerPage;
+            const endIndex = Math.min(startIndex + ordersPerPage, orders.length);
+            const pageOrders = orders.slice(startIndex, endIndex);
+            
+            let html = '<div class="labels-page">';
+            
+            pageOrders.forEach(orderRow => {
+                html += '<div class="order-row">';
+                
+                // Colonne 1 : Sec & Frais
+                if (orderRow.column1) {
+                    html += `
+                        <div class="label ${orderRow.column1.cssClass}">
+                            <div class="label-order-number">${orderRow.orderNumber}</div>
+                            <div class="label-category-type">${orderRow.column1.type}</div>
+                        </div>
+                    `;
+                } else {
+                    html += '<div class="label label-empty"></div>';
+                }
+                
+                // Colonne 2 : Surgelé
+                if (orderRow.column2) {
+                    html += `
+                        <div class="label ${orderRow.column2.cssClass}">
+                            <div class="label-order-number">${orderRow.orderNumber}</div>
+                            <div class="label-category-type">${orderRow.column2.type}</div>
+                        </div>
+                    `;
+                } else {
+                    html += '<div class="label label-empty"></div>';
+                }
+                
+                // Colonne 3 : Viandes fraîches
+                if (orderRow.column3) {
+                    html += `
+                        <div class="label ${orderRow.column3.cssClass}">
+                            <div class="label-order-number">${orderRow.orderNumber}</div>
+                            <div class="label-category-type">${orderRow.column3.type}</div>
+                        </div>
+                    `;
+                } else {
+                    html += '<div class="label label-empty"></div>';
+                }
+                
+                // Colonne 4 : Produits critiques
+                if (orderRow.column4) {
+                    const productsList = orderRow.column4.products.join('<br>');
+                    html += `
+                        <div class="label ${orderRow.column4.cssClass}">
+                            <div class="label-order-number">${orderRow.orderNumber}</div>
+                            <div class="label-category-type">${orderRow.column4.type}</div>
+                            <div class="label-products-list">${productsList}</div>
+                        </div>
+                    `;
+                } else {
+                    html += '<div class="label label-empty"></div>';
+                }
+                
+                html += '</div>';
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
 
-       function updatePagination() {
-           if (totalPages <= 1) {
-               document.getElementById('pagination').innerHTML = '';
-               return;
-           }
+        function updatePagination() {
+            if (totalPages <= 1) {
+                document.getElementById('pagination').innerHTML = '';
+                return;
+            }
 
-           let html = '<div class="pagination">';
-           
-           if (currentPage > 1) {
-               html += `<button onclick="changePage(${currentPage - 1})">« Précédent</button>`;
-           }
-           
-           for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) {
-               const activeClass = i === currentPage ? 'active' : '';
-               html += `<button class="${activeClass}" onclick="changePage(${i})">${i}</button>`;
-           }
-           
-           if (currentPage < totalPages) {
-               html += `<button onclick="changePage(${currentPage + 1})">Suivant »</button>`;
-           }
-           
-           html += '</div>';
-           document.getElementById('pagination').innerHTML = html;
-       }
+            let html = '<div class="pagination">';
+            
+            if (currentPage > 1) {
+                html += `<button onclick="changePage(${currentPage - 1})">« Précédent</button>`;
+            }
+            
+            for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) {
+                const activeClass = i === currentPage ? 'active' : '';
+                html += `<button class="${activeClass}" onclick="changePage(${i})">${i}</button>`;
+            }
+            
+            if (currentPage < totalPages) {
+                html += `<button onclick="changePage(${currentPage + 1})">Suivant »</button>`;
+            }
+            
+            html += '</div>';
+            document.getElementById('pagination').innerHTML = html;
+        }
 
-       function changePage(pageNum) {
-           if (pageNum < 1 || pageNum > totalPages) return;
-           currentPage = pageNum;
-           
-           const ordersPerPage = parseInt(document.getElementById('ordersPerPage').value) || 10;
-           const maxOrders = parseInt(document.getElementById('maxOrders').value) || orderRows.length;
-           const effectiveOrders = Math.min(orderRows.length, maxOrders);
-           
-           renderLabelsPage(currentPage, orderRows.slice(0, effectiveOrders), ordersPerPage);
-           updatePagination();
-       }
+        function changePage(pageNum) {
+            if (pageNum < 1 || pageNum > totalPages) return;
+            currentPage = pageNum;
+            
+            const ordersPerPage = parseInt(document.getElementById('ordersPerPage').value) || 10;
+            const maxOrders = parseInt(document.getElementById('maxOrders').value) || orderRows.length;
+            const effectiveOrders = Math.min(orderRows.length, maxOrders);
+            
+            renderLabelsPage(currentPage, orderRows.slice(0, effectiveOrders), ordersPerPage);
+            updatePagination();
+        }
 
-       function printLabels() {
-           if (orderRows.length === 0) {
-               showMessage('Aucune étiquette à imprimer.', 'error');
-               return;
-           }
-           
-           const ordersPerPage = parseInt(document.getElementById('ordersPerPage').value) || 10;
-           const maxOrders = parseInt(document.getElementById('maxOrders').value) || orderRows.length;
-           const effectiveOrders = Math.min(orderRows.length, maxOrders);
-           
-           const container = document.getElementById('labelsContainer');
-           let allPagesHTML = '';
-           
-           for (let page = 1; page <= totalPages; page++) {
-               const startIndex = (page - 1) * ordersPerPage;
-               const endIndex = Math.min(startIndex + ordersPerPage, effectiveOrders);
-               const pageOrders = orderRows.slice(startIndex, endIndex);
-               
-               allPagesHTML += '<div class="labels-page">';
-               
-               pageOrders.forEach(orderRow => {
-                   allPagesHTML += '<div class="order-row">';
-                   
-                   // Les 4 colonnes
-                   [orderRow.column1, orderRow.column2, orderRow.column3, orderRow.column4].forEach(column => {
-                       if (column) {
-                           const productsList = column.products ? column.products.join('<br>') : '';
-                           allPagesHTML += `
-                               <div class="label ${column.cssClass}">
-                                   <div class="label-delivery-order">Livraison ${orderRow.deliveryOrder}</div>
-                                   <div class="label-order-number">${orderRow.orderNumber}</div>
-                                   <div class="label-category-type">${column.type}</div>
-                                   ${productsList ? `<div class="label-products-list">${productsList}</div>` : ''}
-                               </div>
-                           `;
-                       } else {
-                           allPagesHTML += '<div class="label label-empty"></div>';
-                       }
-                   });
-                   
-                   allPagesHTML += '</div>';
-               });
-               
-               allPagesHTML += '</div>';
-           }
-           
-           container.innerHTML = allPagesHTML;
-           
-           setTimeout(() => {
-               window.print();
-               setTimeout(() => {
-                   const ordersPerPage = parseInt(document.getElementById('ordersPerPage').value) || 10;
-                   renderLabelsPage(currentPage, orderRows.slice(0, effectiveOrders), ordersPerPage);
-               }, 1000);
-           }, 100);
-       }
+        function printLabels() {
+            if (orderRows.length === 0) {
+                showMessage('Aucune étiquette à imprimer.', 'error');
+                return;
+            }
+            
+            const ordersPerPage = parseInt(document.getElementById('ordersPerPage').value) || 10;
+            const maxOrders = parseInt(document.getElementById('maxOrders').value) || orderRows.length;
+            const effectiveOrders = Math.min(orderRows.length, maxOrders);
+            
+            const container = document.getElementById('labelsContainer');
+            let allPagesHTML = '';
+            
+            for (let page = 1; page <= totalPages; page++) {
+                const startIndex = (page - 1) * ordersPerPage;
+                const endIndex = Math.min(startIndex + ordersPerPage, effectiveOrders);
+                const pageOrders = orderRows.slice(startIndex, endIndex);
+                
+                allPagesHTML += '<div class="labels-page">';
+                
+                pageOrders.forEach(orderRow => {
+                    allPagesHTML += '<div class="order-row">';
+                    
+                    // Les 4 colonnes...
+                    [orderRow.column1, orderRow.column2, orderRow.column3, orderRow.column4].forEach(column => {
+                        if (column) {
+                            const productsList = column.products ? column.products.join('<br>') : '';
+                            allPagesHTML += `
+                                <div class="label ${column.cssClass}">
+                                    <div class="label-order-number">${orderRow.orderNumber}</div>
+                                    <div class="label-category-type">${column.type}</div>
+                                    ${productsList ? `<div class="label-products-list">${productsList}</div>` : ''}
+                                </div>
+                            `;
+                        } else {
+                            allPagesHTML += '<div class="label label-empty"></div>';
+                        }
+                    });
+                    
+                    allPagesHTML += '</div>';
+                });
+                
+                allPagesHTML += '</div>';
+            }
+            
+            container.innerHTML = allPagesHTML;
+            
+            setTimeout(() => {
+                window.print();
+                setTimeout(() => {
+                    const ordersPerPage = parseInt(document.getElementById('ordersPerPage').value) || 10;
+                    renderLabelsPage(currentPage, orderRows.slice(0, effectiveOrders), ordersPerPage);
+                }, 1000);
+            }, 100);
+        }
 
-       function loadSampleData() {
-           csvData = [
-               {
-                   'Name': '#1488',
-                   'Lineitem quantity': '1',
-                   'Lineitem name': 'Escargots décortiqués(congelé) - 250 g',
-                   'categorie_conservation': 'surgelé'
-               },
-               {
-                   'Name': '#1488',
-                   'Lineitem quantity': '1',
-                   'Lineitem name': 'Attieke fin frais - 3 boules',
-                   'categorie_conservation': 'frais'
-               },
-               {
-                   'Name': '#1488',
-                   'Lineitem quantity': '1',
-                   'Lineitem name': 'Carton de poulet entier - 10kg',
-                   'categorie_conservation': 'surgelé'
-               },
-               {
-                   'Name': '#1489',
-                   'Lineitem quantity': '1',
-                   'Lineitem name': 'Poisson Chat entier - 3 kg',
-                   'categorie_conservation': 'viandes fraiche'
-               },
-               {
-                   'Name': '#1489',
-                   'Lineitem quantity': '2',
-                   'Lineitem name': 'Sac de riz jasmin - 10kg',
-                   'categorie_conservation': 'sec'
-               },
-               {
-                   'Name': '#1490',
-                   'Lineitem quantity': '1',
-                   'Lineitem name': 'Placali congelé (500g) - 1 boule',
-                   'categorie_conservation': 'surgelé'
-               },
-               {
-                   'Name': '#1491',
-                   'Lineitem quantity': '1',
-                   'Lineitem name': 'Bananes vertes',
-                   'categorie_conservation': 'frais'
-               },
-               {
-                   'Name': '#1491',
-                   'Lineitem quantity': '3',
-                   'Lineitem name': 'Sac d\'oignons - 5kg',
-                   'categorie_conservation': 'frais'
-               }
-           ];
-           
-           processOrdersData();
-           showMessage('✅ Données d\'exemple chargées! Cliquez sur "Générer les étiquettes".', 'success');
-       }
+        function loadSampleData() {
+            csvData = [
+                {
+                    'Name': '#1488',
+                    'Lineitem quantity': '1',
+                    'Lineitem name': 'Escargots décortiqués(congelé) - 250 g',
+                    'categorie_conservation': 'surgelé'
+                },
+                {
+                    'Name': '#1488',
+                    'Lineitem quantity': '1',
+                    'Lineitem name': 'Attieke fin frais - 3 boules',
+                    'categorie_conservation': 'frais'
+                },
+                {
+                    'Name': '#1488',
+                    'Lineitem quantity': '1',
+                    'Lineitem name': 'Carton de poulet entier - 10kg',
+                    'categorie_conservation': 'surgelé'
+                },
+                {
+                    'Name': '#1489',
+                    'Lineitem quantity': '1',
+                    'Lineitem name': 'Poisson Chat entier - 3 kg',
+                    'categorie_conservation': 'viandes fraiche'
+                },
+                {
+                    'Name': '#1489',
+                    'Lineitem quantity': '2',
+                    'Lineitem name': 'Sac de riz jasmin - 10kg',
+                    'categorie_conservation': 'sec'
+                },
+                {
+                    'Name': '#1490',
+                    'Lineitem quantity': '1',
+                    'Lineitem name': 'Placali congelé (500g) - 1 boule',
+                    'categorie_conservation': 'surgelé'
+                },
+                {
+                    'Name': '#1491',
+                    'Lineitem quantity': '1',
+                    'Lineitem name': 'Bananes vertes',
+                    'categorie_conservation': 'frais'
+                },
+                {
+                    'Name': '#1491',
+                    'Lineitem quantity': '3',
+                    'Lineitem name': 'Sac d\'oignons - 5kg',
+                    'categorie_conservation': 'frais'
+                }
+            ];
+            
+            processOrdersData();
+            showMessage('✅ Données d\'exemple chargées! Cliquez sur "Générer les étiquettes".', 'success');
+        }
 
-       function showMessage(text, type) {
-           const container = document.getElementById('messages');
-           const className = type === 'error' ? 'error' : 'success';
-           container.innerHTML = `<div class="${className}">${text}</div>`;
-           
-           setTimeout(() => {
-               container.innerHTML = '';
-           }, 5000);
-       }
-   </script>
+        function showMessage(text, type) {
+            const container = document.getElementById('messages');
+            const className = type === 'error' ? 'error' : 'success';
+            container.innerHTML = `<div class="${className}">${text}</div>`;
+            
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+    </script>
 </body>
 </html>
