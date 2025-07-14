@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Générateur d'Étiquettes Préparateur de commandes CR/ Rungis </title>
+    <title>Générateur d'Étiquettes pour les préparateurs de commandes à CR & Rungis </title>
     <style>
         * {
             margin: 0;
@@ -592,7 +592,7 @@
 
         function generateLabels() {
             if (csvData.length === 0) {
-                showMessage('Veuillez d\'abord charger un fichier CSV.', 'error');
+                showMessage('Veuillez d\'abord charger un fichier CSV ou utiliser les données test.', 'error');
                 return;
             }
 
@@ -608,7 +608,7 @@
             
             document.getElementById('printBtn').disabled = false;
             
-            showMessage(`Étiquettes générées: ${effectiveData.length} étiquettes sur ${totalPages} page(s)`, 'success');
+            showMessage(`✅ Étiquettes générées: ${effectiveData.length} étiquettes sur ${totalPages} page(s)`, 'success');
         }
 
         function renderLabelsPage(pageNum, data) {
@@ -839,4 +839,13 @@
 
         function showMessage(text, type) {
             const container = document.getElementById('messages');
-            const className = type === 'error' ? 'error
+            const className = type === 'error' ? 'error' : 'success';
+            container.innerHTML = `<div class="${className}">${text}</div>`;
+            
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
