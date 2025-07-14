@@ -13,8 +13,8 @@ from zoneinfo import ZoneInfo
 import csv
 import os
 
-# Déclarer la clef API
-API_KEY = 'VOTRE_CLE_API_GOOGLE_MAPS'
+# Déclarer la clef d'API Maps
+CLEF_API = 'AIzaSyCkP4UBHMHm86s8u-edvF7x1al6-zWPqjE'
 
 # Initialiser le client Google Maps
 gmaps = googlemaps.Client(key=API_KEY)
