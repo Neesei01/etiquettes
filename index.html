@@ -25,6 +25,11 @@
             width: calc(100% - 10mm);
             height: calc(100vh - 25mm);
             margin: 0 auto;
+            page-break-after: always;
+        }
+        
+        .labels-container:last-child {
+            page-break-after: avoid;
         }
         
         .label {
@@ -81,8 +86,10 @@
     </style>
 </head>
 <body>
-    <div class="labels-container" id="labelsContainer">
-        <!-- Les étiquettes seront générées ici -->
+    <div id="allPages">
+        <div class="labels-container page" id="labelsContainer">
+            <!-- Les étiquettes seront générées ici -->
+        </div>
     </div>
 
     <script>
@@ -101,36 +108,72 @@
         ];
 
         function generateLabels(data) {
-            const container = document.getElementById('labelsContainer');
-            container.innerHTML = '';
+            const allPagesContainer = document.getElementById('allPages');
+            allPagesContainer.innerHTML = '';
             
-            // Générer 40 étiquettes (répéter les données si nécessaire)
-            for (let i = 0; i < 40; i++) {
-                const item = data[i % data.length];
+            // Calculer le nombre de pages nécessaires
+            const itemsPerPage = 40;
+            const totalPages = Math.ceil(data.length / itemsPerPage);
+            
+            // Créer une page pour chaque groupe de 40 étiquettes
+            for (let pageIndex = 0; pageIndex < totalPages; pageIndex++) {
+                const pageContainer = document.createElement('div');
+                pageContainer.className = 'labels-container page';
                 
-                const label = document.createElement('div');
-                label.className = 'label';
+                // Calculer les indices de début et fin pour cette page
+                const startIndex = pageIndex * itemsPerPage;
+                const endIndex = Math.min(startIndex + itemsPerPage, data.length);
                 
-                // Déterminer la couleur de la catégorie
-                let categoryColor = '#f0f0f0';
-                if (item.category === 'FRAIS') {
-                    categoryColor = '#e3f2fd';
-                } else if (item.category === 'CONGELÉ') {
-                    categoryColor = '#f3e5f5';
-                } else if (item.category === 'AMBIENT') {
-                    categoryColor = '#fff3e0';
+                // Générer les étiquettes pour cette page
+                for (let i = startIndex; i < startIndex + itemsPerPage; i++) {
+                    let item;
+                    
+                    if (i < data.length) {
+                        // Utiliser les vraies données
+                        item = data[i];
+                    } else {
+                        // Étiquette vide pour compléter la page
+                        item = { orderNumber: '', quantity: '', productName: '', category: '' };
+                    }
+                    
+                    const label = document.createElement('div');
+                    label.className = 'label';
+                    
+                    if (item.productName) {
+                        // Déterminer la couleur de la catégorie
+                        let categoryColor = '#f0f0f0';
+                        if (item.category === 'FRAIS') {
+                            categoryColor = '#e3f2fd';
+                        } else if (item.category === 'CONGELÉ') {
+                            categoryColor = '#f3e5f5';
+                        } else if (item.category === 'AMBIENT') {
+                            categoryColor = '#fff3e0';
+                        }
+                        
+                        label.innerHTML = `
+                            <div class="label-category" style="background-color: ${categoryColor};">
+                                ${item.category}
+                            </div>
+                            <div class="label-quantity">Qté: ${item.quantity}</div>
+                            <div class="label-product">${item.productName}</div>
+                            <div class="label-order">${item.orderNumber}</div>
+                        `;
+                    } else {
+                        // Étiquette vide
+                        label.innerHTML = '';
+                        label.style.border = '1px solid #f0f0f0';
+                    }
+                    
+                    pageContainer.appendChild(label);
                 }
                 
-                label.innerHTML = `
-                    <div class="label-category" style="background-color: ${categoryColor};">
-                        ${item.category}
-                    </div>
-                    <div class="label-quantity">Qté: ${item.quantity}</div>
-                    <div class="label-product">${item.productName}</div>
-                    <div class="label-order">${item.orderNumber}</div>
-                `;
-                
-                container.appendChild(label);
+                allPagesContainer.appendChild(pageContainer);
+            }
+            
+            // Mettre à jour le bouton avec le nombre de produits et de pages
+            const button = document.querySelector('button');
+            if (button) {
+                button.textContent = `Charger CSV (${data.length} produits sur ${totalPages} page${totalPages > 1 ? 's' : ''})`;
             }
         }
 
@@ -146,23 +189,31 @@
                     reader.onload = function(event) {
                         const csvText = event.target.result;
                         const lines = csvText.split('\n');
-                        const headers = lines[0].split(',').map(h => h.trim());
+                        const headers = lines[0].split(/[,;]/).map(h => h.trim().replace(/"/g, ''));
+                        
+                        console.log('Headers détectés:', headers);
                         
                         const customData = [];
                         for (let i = 1; i < lines.length; i++) {
                             if (lines[i].trim()) {
-                                const values = lines[i].split(',').map(v => v.trim());
-                                customData.push({
-                                    orderNumber: values[0] || '',
-                                    quantity: values[1] || '',
-                                    productName: values[2] || '',
-                                    category: values[3] || ''
-                                });
+                                const values = lines[i].split(/[,;]/).map(v => v.trim().replace(/"/g, ''));
+                                if (values.length >= 4) {
+                                    customData.push({
+                                        orderNumber: values[0] || '',
+                                        quantity: values[1] || '',
+                                        productName: values[2] || '',
+                                        category: values[3] || ''
+                                    });
+                                }
                             }
                         }
                         
+                        console.log(`${customData.length} produits chargés`);
+                        
                         if (customData.length > 0) {
                             generateLabels(customData);
+                        } else {
+                            alert('Aucun produit valide trouvé dans le fichier CSV');
                         }
                     };
                     reader.readAsText(file);
