@@ -270,16 +270,22 @@
             const originalPage = currentPage;
             const originalContent = document.getElementById('labelsContainer').innerHTML;
             
-            // Créer un conteneur temporaire pour toutes les pages
-            const printContainer = document.createElement('div');
-            printContainer.style.display = 'none';
-            document.body.appendChild(printContainer);
+            // Créer un conteneur temporaire pour toutes les pages avec le même wrapper que le body
+            const printWrapper = document.createElement('div');
+            printWrapper.style.cssText = `
+                margin: 0;
+                padding: 15mm 8mm 10mm 8mm;
+                font-family: Arial, sans-serif;
+                background: white;
+                display: none;
+            `;
+            document.body.appendChild(printWrapper);
             
             const totalPages = Math.ceil(allData.length / labelsPerPage);
             
             // Générer toutes les pages
             for (let page = 1; page <= totalPages; page++) {
-                // Créer une page
+                // Créer une page avec exactement la même structure
                 const pageDiv = document.createElement('div');
                 pageDiv.className = 'labels-container';
                 pageDiv.style.pageBreakAfter = page < totalPages ? 'always' : 'auto';
@@ -318,21 +324,27 @@
                     pageDiv.appendChild(emptyLabel);
                 }
                 
-                printContainer.appendChild(pageDiv);
+                printWrapper.appendChild(pageDiv);
             }
             
-            // Remplacer temporairement le contenu principal
+            // Remplacer temporairement le contenu principal tout en gardant la même structure
             const mainContainer = document.getElementById('labelsContainer');
+            const bodyOriginalStyle = document.body.style.cssText;
+            
+            // Cacher le contenu principal
             mainContainer.style.display = 'none';
-            printContainer.style.display = 'block';
+            
+            // Appliquer temporairement le style du wrapper
+            printWrapper.style.display = 'block';
             
             // Imprimer
             window.print();
             
             // Restaurer l'état original après l'impression
             setTimeout(() => {
-                document.body.removeChild(printContainer);
+                document.body.removeChild(printWrapper);
                 mainContainer.style.display = 'grid';
+                document.body.style.cssText = bodyOriginalStyle;
             }, 1000);
         }
 
