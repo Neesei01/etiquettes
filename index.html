@@ -3,911 +3,198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Générateur d'Étiquettes Avery J8654</title>
+    <title>Étiquettes d'impression</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-
-        .main-content {
-            padding: 40px;
-        }
-
-        .upload-section {
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 30px;
-            border: 2px dashed #dee2e6;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .upload-section:hover {
-            border-color: #4facfe;
-            background: #f0f8ff;
-        }
-
-        .file-input {
-            margin: 20px 0;
-        }
-
-        .file-input input[type="file"] {
-            display: none;
-        }
-
-        .file-label {
-            display: inline-block;
-            padding: 15px 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .file-label:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        .controls {
-            display: flex;
-            gap: 20px;
-            margin: 30px 0;
-            flex-wrap: wrap;
-        }
-
-        .control-group {
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .control-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .control-group input, .control-group select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #dee2e6;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.3s ease;
-        }
-
-        .control-group input:focus, .control-group select:focus {
-            outline: none;
-            border-color: #4facfe;
-            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
-        }
-
-        .btn {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            margin: 10px;
-        }
-
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
-        }
-
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .preview-section {
-            margin-top: 30px;
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin: 20px 0;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #4facfe;
-        }
-
-        .stat-label {
-            color: #666;
-            margin-top: 5px;
-        }
-
-        /* Styles critiques pour le format Avery J8654 */
         @page {
-            size: A4;
             margin: 0;
+            size: A4;
         }
-
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-            
-            .labels-page, .labels-page * {
-                visibility: visible;
-            }
-            
-            .labels-page {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 210mm;
-                height: 297mm;
-                margin: 0;
-                padding: 0;
-            }
-            
-            .no-print {
-                display: none !important;
-            }
-        }
-
-        /* Format exact Avery J8654: 4 colonnes × 10 lignes = 40 étiquettes */
-        .labels-page {
-            width: 210mm;
-            height: 297mm;
-            margin: 20px auto;
+        
+        body {
+            margin: 0;
+            padding: 21mm 8mm;
+            font-family: Arial, sans-serif;
             background: white;
+        }
+        
+        .labels-container {
             display: grid;
             grid-template-columns: repeat(4, 45.72mm);
             grid-template-rows: repeat(10, 25.4mm);
-            gap: 2.54mm 2.54mm;
-            justify-content: center;
-            align-content: center;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            page-break-after: always;
-            padding: 13.5mm 7mm;
+            gap: 0;
+            width: calc(4 * 45.72mm);
+            height: calc(10 * 25.4mm);
         }
-
-        /* Étiquette individuelle - dimensions exactes Avery J8654 */
+        
         .label {
             width: 45.72mm;
             height: 25.4mm;
-            border: 1px solid #e0e0e0;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+            padding: 1mm;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 1.5mm;
-            font-family: Arial, sans-serif;
-            overflow: hidden;
-            position: relative;
-            background: white;
-        }
-
-        .label-category {
-            font-weight: bold;
-            font-size: 7pt;
-            color: #2c3e50;
-            text-transform: uppercase;
-            text-align: center;
-            background: #f8f9fa;
-            padding: 0.5mm 0;
-            border-radius: 1mm;
-            margin-bottom: 0.5mm;
-            line-height: 1;
-        }
-
-        .label-product {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 8pt;
-            color: #2c3e50;
-            text-align: center;
+            font-size: 6pt;
             line-height: 1.1;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            hyphens: auto;
-        }
-
-        .label-order {
-            font-size: 11pt;
-            color: #000;
-            text-align: center;
-            font-weight: bold;
-            margin-top: 0.5mm;
-            line-height: 1;
-            letter-spacing: 0.2mm;
-        }
-
-        /* Codes couleur par catégorie */
-        .category-surgele { 
-            background-color: #e3f2fd; 
-            color: #1565c0; 
-            border: 1px solid #bbdefb;
-        }
-        .category-viandes { 
-            background-color: #ffebee; 
-            color: #c62828; 
-            border: 1px solid #ffcdd2;
-        }
-        .category-frais { 
-            background-color: #e8f5e8; 
-            color: #2e7d32; 
-            border: 1px solid #c8e6c9;
-        }
-        .category-sec { 
-            background-color: #fff3e0; 
-            color: #ef6c00; 
-            border: 1px solid #ffcc02;
-        }
-
-        .no-data {
-            text-align: center;
-            color: #666;
-            font-style: italic;
-            margin: 40px 0;
-        }
-
-        .pagination {
-            text-align: center;
-            margin: 20px 0;
-        }
-
-        .pagination button {
-            margin: 0 5px;
-            padding: 8px 16px;
-            border: 1px solid #ddd;
-            background: white;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-
-        .pagination button.active {
-            background: #4facfe;
-            color: white;
-            border-color: #4facfe;
-        }
-
-        .error {
-            background: #ffebee;
-            color: #d32f2f;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            border-left: 4px solid #d32f2f;
-        }
-
-        .success {
-            background: #e8f5e8;
-            color: #388e3c;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            border-left: 4px solid #388e3c;
-        }
-
-        /* Debug - pour vérifier l'alignement */
-        .debug-mode .labels-page {
-            background: #f0f0f0;
         }
         
-        .debug-mode .label {
-            border: 1px solid #ff0000;
+        .label-header {
+            font-weight: bold;
+            font-size: 7pt;
+            margin-bottom: 1mm;
+        }
+        
+        .label-category {
+            background-color: #f0f0f0;
+            padding: 0.5mm;
+            text-align: center;
+            font-weight: bold;
+            font-size: 5pt;
+            border-radius: 1mm;
+        }
+        
+        .label-quantity {
+            font-weight: bold;
+            font-size: 8pt;
+        }
+        
+        .label-product {
+            flex-grow: 1;
+            font-size: 6pt;
+            word-wrap: break-word;
+        }
+        
+        .label-order {
+            font-size: 5pt;
+            color: #666;
+            text-align: right;
+        }
+        
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🏷️ Générateur d'Étiquettes Avery J8654 - GrandExotique </h1>
-            <p>Format exact: 4 colonnes × 10 lignes = 40 étiquettes (45.72 × 25.4 mm)</p>
-        </div>
-
-        <div class="main-content">
-            <div class="upload-section">
-                <h3>📁 Charger vos données</h3>
-                <p>Sélectionnez votre fichier CSV contenant les commandes</p>
-                <div class="file-input">
-                    <label for="csvFile" class="file-label">
-                        📎 Choisir un fichier CSV
-                    </label>
-                    <input type="file" id="csvFile" accept=".csv" />
-                </div>
-                <p><small>Format attendu : Numéro de commande, Quantité, Nom du produit, Catégorie de conservation<br>
-                Layout : 4 colonnes × 10 lignes = 40 étiquettes par page A4</small></p>
-            </div>
-
-            <div class="controls">
-                <div class="control-group">
-                    <label for="fontSize">Taille police produit (pt)</label>
-                    <input type="number" id="fontSize" value="8" min="6" max="12" />
-                </div>
-                <div class="control-group">
-                    <label for="orderFontSize">Taille police commande (pt)</label>
-                    <input type="number" id="orderFontSize" value="11" min="8" max="16" />
-                </div>
-                <div class="control-group">
-                    <label for="startPage">Page de départ</label>
-                    <input type="number" id="startPage" value="1" min="1" />
-                </div>
-                <div class="control-group">
-                    <label for="maxLabels">Max étiquettes (0 = toutes)</label>
-                    <input type="number" id="maxLabels" value="0" min="0" />
-                </div>
-            </div>
-
-            <div class="controls">
-                <button class="btn" onclick="generateLabels()">🏷️ Générer les étiquettes</button>
-                <button class="btn" onclick="printLabels()" id="printBtn" disabled>🖨️ Imprimer</button>
-                <button class="btn" onclick="loadSampleData()">📝 Charger données test</button>
-                <label>
-                    <input type="checkbox" id="debugMode" onchange="toggleDebugMode()"> Mode debug
-                </label>
-            </div>
-
-            <div id="stats" class="stats" style="display: none;">
-                <div class="stat-card">
-                    <div class="stat-number" id="totalLabels">0</div>
-                    <div class="stat-label">Étiquettes totales</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="totalPages">0</div>
-                    <div class="stat-label">Pages nécessaires</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="categoriesCount">0</div>
-                    <div class="stat-label">Catégories différentes</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="labelsPerPage">40</div>
-                    <div class="stat-label">Étiquettes par page</div>
-                </div>
-            </div>
-
-            <div id="messages"></div>
-            <div id="pagination" class="no-print"></div>
-            <div id="labelsContainer"></div>
-        </div>
+    <div class="labels-container" id="labelsContainer">
+        <!-- Les étiquettes seront générées ici -->
     </div>
 
     <script>
-        let csvData = [];
-        let currentPage = 1;
-        let totalPages = 0;
-        const LABELS_PER_PAGE = 40; // Exactement 40 pour Avery J8654
-        const COLS_PER_PAGE = 4;    // 4 colonnes
-        const ROWS_PER_PAGE = 10;   // 10 lignes
+        // Données d'exemple basées sur votre structure CSV
+        const sampleData = [
+            { orderNumber: "CMD001", quantity: "5", productName: "Pommes Bio", category: "FRAIS" },
+            { orderNumber: "CMD002", quantity: "2", productName: "Lait entier 1L", category: "FRAIS" },
+            { orderNumber: "CMD003", quantity: "1", productName: "Pain complet", category: "AMBIENT" },
+            { orderNumber: "CMD004", quantity: "3", productName: "Yaourts nature", category: "FRAIS" },
+            { orderNumber: "CMD005", quantity: "1", productName: "Huile d'olive", category: "AMBIENT" },
+            { orderNumber: "CMD006", quantity: "4", productName: "Oranges pressées", category: "FRAIS" },
+            { orderNumber: "CMD007", quantity: "2", productName: "Pâtes complètes", category: "AMBIENT" },
+            { orderNumber: "CMD008", quantity: "1", productName: "Fromage blanc", category: "FRAIS" },
+            { orderNumber: "CMD009", quantity: "6", productName: "Œufs bio", category: "FRAIS" },
+            { orderNumber: "CMD010", quantity: "1", productName: "Miel d'acacia", category: "AMBIENT" }
+        ];
 
-        document.getElementById('csvFile').addEventListener('change', handleFileSelect);
+        function generateLabels(data) {
+            const container = document.getElementById('labelsContainer');
+            container.innerHTML = '';
+            
+            // Générer 40 étiquettes (répéter les données si nécessaire)
+            for (let i = 0; i < 40; i++) {
+                const item = data[i % data.length];
+                
+                const label = document.createElement('div');
+                label.className = 'label';
+                
+                // Déterminer la couleur de la catégorie
+                let categoryColor = '#f0f0f0';
+                if (item.category === 'FRAIS') {
+                    categoryColor = '#e3f2fd';
+                } else if (item.category === 'CONGELÉ') {
+                    categoryColor = '#f3e5f5';
+                } else if (item.category === 'AMBIENT') {
+                    categoryColor = '#fff3e0';
+                }
+                
+                label.innerHTML = `
+                    <div class="label-category" style="background-color: ${categoryColor};">
+                        ${item.category}
+                    </div>
+                    <div class="label-quantity">Qté: ${item.quantity}</div>
+                    <div class="label-product">${item.productName}</div>
+                    <div class="label-order">${item.orderNumber}</div>
+                `;
+                
+                container.appendChild(label);
+            }
+        }
 
-        function handleFileSelect(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    parseCSV(e.target.result);
-                } catch (error) {
-                    showMessage('Erreur lors de la lecture du fichier: ' + error.message, 'error');
+        // Fonction pour charger des données CSV personnalisées
+        function loadCustomData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.csv';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const csvText = event.target.result;
+                        const lines = csvText.split('\n');
+                        const headers = lines[0].split(',').map(h => h.trim());
+                        
+                        const customData = [];
+                        for (let i = 1; i < lines.length; i++) {
+                            if (lines[i].trim()) {
+                                const values = lines[i].split(',').map(v => v.trim());
+                                customData.push({
+                                    orderNumber: values[0] || '',
+                                    quantity: values[1] || '',
+                                    productName: values[2] || '',
+                                    category: values[3] || ''
+                                });
+                            }
+                        }
+                        
+                        if (customData.length > 0) {
+                            generateLabels(customData);
+                        }
+                    };
+                    reader.readAsText(file);
                 }
             };
-            reader.readAsText(file, 'UTF-8');
+            input.click();
         }
 
-        function parseCSV(csvText) {
-            const lines = csvText.split('\n').filter(line => line.trim());
-            if (lines.length < 2) {
-                showMessage('Le fichier CSV doit contenir au moins une ligne d\'en-tête et une ligne de données.', 'error');
-                return;
-            }
-
-            csvData = [];
-            const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-            
-            for (let i = 1; i < lines.length; i++) {
-                const values = parseCSVLine(lines[i]);
-                if (values.length === headers.length) {
-                    const row = {};
-                    headers.forEach((header, index) => {
-                        row[header] = values[index];
-                    });
-                    csvData.push(row);
-                }
-            }
-
-            if (csvData.length === 0) {
-                showMessage('Aucune donnée valide trouvée dans le fichier CSV.', 'error');
-                return;
-            }
-
-            showMessage(`✅ ${csvData.length} lignes chargées avec succès!`, 'success');
-            updateStats();
-        }
-
-        function parseCSVLine(line) {
-            const result = [];
-            let current = '';
-            let inQuotes = false;
-            
-            for (let i = 0; i < line.length; i++) {
-                const char = line[i];
-                
-                if (char === '"') {
-                    inQuotes = !inQuotes;
-                } else if (char === ',' && !inQuotes) {
-                    result.push(current.trim().replace(/"/g, ''));
-                    current = '';
-                } else {
-                    current += char;
-                }
-            }
-            
-            result.push(current.trim().replace(/"/g, ''));
-            return result;
-        }
-
-        function updateStats() {
-            if (csvData.length === 0) return;
-
-            const maxLabels = parseInt(document.getElementById('maxLabels').value) || csvData.length;
-            const effectiveLabels = Math.min(csvData.length, maxLabels);
-            totalPages = Math.ceil(effectiveLabels / LABELS_PER_PAGE);
-            
-            const categories = new Set();
-            csvData.forEach(row => {
-                const cat = getCategoryFromRow(row);
-                if (cat) categories.add(cat);
-            });
-
-            document.getElementById('totalLabels').textContent = effectiveLabels;
-            document.getElementById('totalPages').textContent = totalPages;
-            document.getElementById('categoriesCount').textContent = categories.size;
-            document.getElementById('stats').style.display = 'grid';
-        }
-
-        function getCategoryFromRow(row) {
-            const possibleKeys = [
-                'categorie_conservation',
-                'Catégorie de conservation',
-                'Category',
-                'categorie',
-                'conservation'
-            ];
-            
-            for (const key of possibleKeys) {
-                if (row[key]) return row[key];
-            }
-            return 'Non spécifié';
-        }
-
-        function getQuantityFromRow(row) {
-            const possibleKeys = [
-                'Lineitem quantity',
-                'Quantité',
-                'Quantity',
-                'quantite',
-                'qty'
-            ];
-            
-            for (const key of possibleKeys) {
-                if (row[key]) return row[key];
-            }
-            return '1';
-        }
-
-        function getProductFromRow(row) {
-            const possibleKeys = [
-                'Lineitem name',
-                'Nom du produit',
-                'Product',
-                'produit',
-                'name'
-            ];
-            
-            for (const key of possibleKeys) {
-                if (row[key]) return row[key];
-            }
-            return 'Produit non spécifié';
-        }
-
-        function getOrderFromRow(row) {
-            const possibleKeys = [
-                'Name',
-                'Numéro de commande',
-                'Order',
-                'commande',
-                'order_number'
-            ];
-            
-            for (const key of possibleKeys) {
-                if (row[key]) return row[key];
-            }
-            return 'N/A';
-        }
-
-        function generateLabels() {
-            if (csvData.length === 0) {
-                showMessage('Veuillez d\'abord charger un fichier CSV.', 'error');
-                return;
-            }
-
-            const maxLabels = parseInt(document.getElementById('maxLabels').value) || csvData.length;
-            const effectiveData = csvData.slice(0, maxLabels);
-            
-            totalPages = Math.ceil(effectiveData.length / LABELS_PER_PAGE);
-            currentPage = parseInt(document.getElementById('startPage').value) || 1;
-            
-            renderLabelsPage(currentPage, effectiveData);
-            updatePagination();
-            updateStats();
-            
-            document.getElementById('printBtn').disabled = false;
-            
-            showMessage(`Étiquettes générées: ${effectiveData.length} étiquettes sur ${totalPages} page(s)`, 'success');
-        }
-
-        function renderLabelsPage(pageNum, data) {
-            const container = document.getElementById('labelsContainer');
-            const fontSize = document.getElementById('fontSize').value + 'pt';
-            const orderFontSize = document.getElementById('orderFontSize').value + 'pt';
-            
-            const startIndex = (pageNum - 1) * LABELS_PER_PAGE;
-            const endIndex = Math.min(startIndex + LABELS_PER_PAGE, data.length);
-            const pageData = data.slice(startIndex, endIndex);
-            
-            let html = '<div class="labels-page">';
-            
-            // Générer exactement 40 étiquettes (4 colonnes × 10 lignes)
-            for (let i = 0; i < LABELS_PER_PAGE; i++) {
-                if (i < pageData.length) {
-                    const row = pageData[i];
-                    const category = getCategoryFromRow(row);
-                    const quantity = getQuantityFromRow(row);
-                    const product = getProductFromRow(row);
-                    const order = getOrderFromRow(row);
-                    
-                    const categoryClass = getCategoryClass(category);
-                    
-                    html += `
-                        <div class="label">
-                            <div class="label-category ${categoryClass}">
-                                ${category || 'NON SPÉCIFIÉ'}
-                            </div>
-                            <div class="label-product" style="font-size: ${fontSize};">
-                                ${quantity} ${product}
-                            </div>
-                            <div class="label-order" style="font-size: ${orderFontSize};">
-                                ${order}
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    // Étiquette vide pour compléter la grille de 40
-                    html += '<div class="label"></div>';
-                }
-            }
-            
-            html += '</div>';
-            container.innerHTML = html;
-        }
-
-        function getCategoryClass(category) {
-            if (!category) return '';
-            const cat = category.toLowerCase();
-            if (cat.includes('surgel')) return 'category-surgele';
-            if (cat.includes('viande') || cat.includes('fraiche')) return 'category-viandes';
-            if (cat.includes('frais')) return 'category-frais';
-            if (cat.includes('sec')) return 'category-sec';
-            return '';
-        }
-
-        function updatePagination() {
-            if (totalPages <= 1) {
-                document.getElementById('pagination').innerHTML = '';
-                return;
-            }
-
-            let html = '<div class="pagination">';
-            
-            if (currentPage > 1) {
-                html += `<button onclick="changePage(${currentPage - 1})">« Précédent</button>`;
-            }
-            
-            for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) {
-                const activeClass = i === currentPage ? 'active' : '';
-                html += `<button class="${activeClass}" onclick="changePage(${i})">${i}</button>`;
-            }
-            
-            if (currentPage < totalPages) {
-                html += `<button onclick="changePage(${currentPage + 1})">Suivant »</button>`;
-            }
-            
-            html += '</div>';
-            document.getElementById('pagination').innerHTML = html;
-        }
-
-        function changePage(pageNum) {
-            if (pageNum < 1 || pageNum > totalPages) return;
-            currentPage = pageNum;
-            
-            const maxLabels = parseInt(document.getElementById('maxLabels').value) || csvData.length;
-            const effectiveData = csvData.slice(0, maxLabels);
-            
-            renderLabelsPage(currentPage, effectiveData);
-            updatePagination();
-        }
-
-        function printLabels() {
-            if (csvData.length === 0) {
-                showMessage('Aucune étiquette à imprimer.', 'error');
-                return;
-            }
-            
-            // Générer toutes les pages pour l'impression
-            const container = document.getElementById('labelsContainer');
-            const maxLabels = parseInt(document.getElementById('maxLabels').value) || csvData.length;
-            const effectiveData = csvData.slice(0, maxLabels);
-            const fontSize = document.getElementById('fontSize').value + 'pt';
-            const orderFontSize = document.getElementById('orderFontSize').value + 'pt';
-            
-            let allPagesHTML = '';
-            for (let page = 1; page <= totalPages; page++) {
-                const startIndex = (page - 1) * LABELS_PER_PAGE;
-                const endIndex = Math.min(startIndex + LABELS_PER_PAGE, effectiveData.length);
-                const pageData = effectiveData.slice(startIndex, endIndex);
-                
-                allPagesHTML += '<div class="labels-page">';
-                
-                for (let i = 0; i < LABELS_PER_PAGE; i++) {
-                    if (i < pageData.length) {
-                        const row = pageData[i];
-                        const category = getCategoryFromRow(row);
-                        const quantity = getQuantityFromRow(row);
-                        const product = getProductFromRow(row);
-                        const order = getOrderFromRow(row);
-                        const categoryClass = getCategoryClass(category);
-                        
-                        allPagesHTML += `
-                            <div class="label">
-                                <div class="label-category ${categoryClass}">
-                                    ${category || 'NON SPÉCIFIÉ'}
-                                </div>
-                                <div class="label-product" style="font-size: ${fontSize};">
-                                    ${quantity} ${product}
-                                </div>
-                                <div class="label-order" style="font-size: ${orderFontSize};">
-                                    ${order}
-                                </div>
-                            </div>
-                        `;
-                    } else {
-                        allPagesHTML += '<div class="label"></div>';
-                    }
-                }
-                
-                allPagesHTML += '</div>';
-            }
-            
-            container.innerHTML = allPagesHTML;
-            
-            setTimeout(() => {
-                window.print();
-                // Restaurer l'affichage de la page courante après impression
-                setTimeout(() => {
-                    renderLabelsPage(currentPage, effectiveData);
-                }, 1000);
-            }, 100);
-        }
-
-        function toggleDebugMode() {
-            const debugMode = document.getElementById('debugMode').checked;
-            document.body.classList.toggle('debug-mode', debugMode);
-        }
-
-        function loadSampleData() {
-            csvData = [
-                {
-                    'Name': '#1392',
-                    'Lineitem quantity': '1',
-                    'Lineitem name': 'Escargots décortiqués(congelé) - 250 g',
-                    'categorie_conservation': 'surgelé'
-                },
-                {
-                    'Name': '#1393',
-                    'Lineitem quantity': '1',
-                    'Lineitem name': 'Placali congelé (500g) - 1 boule',
-                    'categorie_conservation': 'surgelé'
-                },
-                {
-                    'Name': '#1392',
-                    'Lineitem quantity': '1',
-                    'Lineitem name': 'Poisson Capitaine/Bar du Sénégal surgelé - 1 kg',
-                    'categorie_conservation': 'surgelé'
-                },
-                {
-                    'Name': '#1389',
-                    'Lineitem quantity': '1',
-                    'Lineitem name': 'Poisson Chat entier - 3 kg',
-                    'categorie_conservation': 'frais'
-                },
-                {
-                    'Name': '#1388',
-                    'Lineitem quantity': '1',
-                    'Lineitem name': 'Poisson Malengwa / Malengua surgelé (4KG)',
-                    'categorie_conservation': 'frais'
-                },
-                {
-                    'Name': '#1393',
-                    'Lineitem quantity': '1',
-                    'Lineitem name': 'Attieke Agbodjama - 1 boule',
-                    'categorie_conservation': 'frais'
-                },
-                {
-                    'Name': '#1391',
-                    'Lineitem quantity': '1',
-                    'Lineitem name': 'Attieke fin frais - 3 boules',
-                    'categorie_conservation': 'frais'
-                },
-                {
-                    'Name': '#1391',
-                    'Lineitem quantity': '2',
-                    'Lineitem name': 'Bananes vertes',
-                    'categorie_conservation': 'frais'
-                },
-                {
-                    'Name': '#1391',
-                    'Lineitem quantity': '3',
-                    'Lineitem name': 'Bobolo / Bâtons de maniocs - Grand',
-                    'categorie_conservation': 'frais'
-                },
-                {
-                    'Name': '#1392',
-                    'Lineitem quantity': '7',
-                    'Lineitem name': 'Bobolo / Bâtons de maniocs - Petit',
-                    'categorie_conservation': 'frais'
-                }
-            ];
-            
-            showMessage('✅ Données d\'exemple chargées! Cliquez sur "Générer les étiquettes".', 'success');
-            updateStats();
-        }
-
-        function showMessage(text, type) {
-            const container = document.getElementById('messages');
-            const className = type === 'error' ? 'error' : 'success';
-            container.innerHTML = `<div class="${className}">${text}</div>`;
-            
-            setTimeout(() => {
-                container.innerHTML = '';
-            }, 5000);
-        }
+        // Générer les étiquettes avec les données d'exemple
+        generateLabels(sampleData);
+        
+        // Ajouter un bouton pour charger un fichier CSV personnalisé
+        const button = document.createElement('button');
+        button.textContent = 'Charger votre fichier CSV';
+        button.style.cssText = `
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 1000;
+        `;
+        button.onclick = loadCustomData;
+        document.body.appendChild(button);
+        
+        // Masquer le bouton lors de l'impression
+        const style = document.createElement('style');
+        style.textContent = '@media print { button { display: none !important; } }';
+        document.head.appendChild(style);
     </script>
 </body>
 </html>
-
-  @media print {
-        body {
-            background: none !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-        }
-        .container {
-            box-shadow: none !important;
-            background: white !important;
-            border-radius: 0 !important;
-            max-width: unset !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-        .header, .main-content, #messages, .stats, .actions, .import-section {
-            display: none !important;
-        }
-        .labels-page {
-            margin: 0;
-            padding: 0;
-            page-break-inside: avoid;
-        }
-        .labels-grid {
-            display: grid !important;
-            grid-template-columns: repeat(4, 1fr);
-            grid-template-rows: repeat(10, 1fr);
-            gap: 2mm !important;
-            margin: 2.1cm 0.8cm 2.1cm 0.8cm !important;
-            width: calc(210mm - 2*0.8cm);
-            height: calc(297mm - 2*2.1cm);
-        }
-        .label {
-            box-sizing: border-box;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-            page-break-inside: avoid;
-            break-inside: avoid;
-        }
-        @page {
-            size: A4;
-            margin: 0;
-        }
-    }
-    .labels-page {
-        padding: 0;
-        margin: 0;
-    }
-    .labels-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        grid-template-rows: repeat(10, 1fr);
-        gap: 2mm;
-        margin: 2.1cm 0.8cm 2.1cm 0.8cm;
-    }
-    .label {
-        box-sizing: border-box;
-    }
-</style>
-<script>
-    // Permet d'imprimer toutes les pages d'étiquettes en couleur
-    document.addEventListener('DOMContentLoaded', function() {
-        const printBtn = document.getElementById('print-btn');
-        if (printBtn) {
-            printBtn.addEventListener('click', function() {
-                window.print();
-            });
-        }
-    });
-</script>
