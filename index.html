@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Générateur d'Étiquettes : Préparateur de commandes à CR & Rungis 2.0 </title>
+    <title>Générateur d'Étiquettes : Préparateur de commandes à CR & Rungis 3.0 </title>
     <style>
         * {
             margin: 0;
@@ -374,7 +374,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🏷️ Générateur d'Étiquettes : Préparateur de commandes à CR & Rungis 2.0 </h1>
+            <h1>🏷️ Générateur d'Étiquettes : Préparateur de commandes à CR & Rungis </h1>
             <p>Format exact: 4.8cm × 2.5cm - 4 colonnes × 10 lignes = 40 étiquettes</p>
             <p>Marges EXACTES: 2.1cm haut/bas, 0.8cm gauche/droite - AUCUN ESPACE entre étiquettes</p>
         </div>
@@ -471,6 +471,13 @@
         }
 
         function parseCSV(csvText) {
+            // Nettoyer le BOM si présent
+            csvText = csvText.replace(/^\uFEFF/, '');
+            
+            // Détecter le séparateur (virgule ou point-virgule)
+            const firstLine = csvText.split('\n')[0];
+            const separator = firstLine.includes(';') ? ';' : ',';
+            
             const lines = csvText.split('\n').filter(line => line.trim());
             if (lines.length < 2) {
                 showMessage('Le fichier CSV doit contenir au moins une ligne d\'en-tête et une ligne de données.', 'error');
@@ -478,10 +485,14 @@
             }
 
             csvData = [];
-            const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+            const headers = lines[0].split(separator).map(h => h.trim().replace(/^["']|["']$/g, ''));
+            
+            console.log('En-têtes détectés:', headers);
+            console.log('Séparateur utilisé:', separator);
+            showMessage(`En-têtes trouvés: ${headers.join(', ')} (séparateur: ${separator})`, 'success');
             
             for (let i = 1; i < lines.length; i++) {
-                const values = parseCSVLine(lines[i]);
+                const values = parseCSVLine(lines[i], separator);
                 if (values.length === headers.length) {
                     const row = {};
                     headers.forEach((header, index) => {
@@ -496,11 +507,12 @@
                 return;
             }
 
+            console.log('Première ligne de données:', csvData[0]);
             showMessage(`✅ ${csvData.length} lignes chargées avec succès!`, 'success');
             updateStats();
         }
 
-        function parseCSVLine(line) {
+        function parseCSVLine(line, separator = ',') {
             const result = [];
             let current = '';
             let inQuotes = false;
@@ -510,15 +522,15 @@
                 
                 if (char === '"') {
                     inQuotes = !inQuotes;
-                } else if (char === ',' && !inQuotes) {
-                    result.push(current.trim().replace(/"/g, ''));
+                } else if (char === separator && !inQuotes) {
+                    result.push(current.trim().replace(/^["']|["']$/g, ''));
                     current = '';
                 } else {
                     current += char;
                 }
             }
             
-            result.push(current.trim().replace(/"/g, ''));
+            result.push(current.trim().replace(/^["']|["']$/g, ''));
             return result;
         }
 
@@ -558,8 +570,8 @@
 
         function getQuantityFromRow(row) {
             const possibleKeys = [
-                'Lineitem quantity',
                 'Quantité',
+                'Lineitem quantity',
                 'Quantity',
                 'quantite',
                 'qty'
@@ -588,8 +600,8 @@
 
         function getOrderFromRow(row) {
             const possibleKeys = [
-                'Name',
                 'Numéro de commande',
+                'Name',
                 'Order',
                 'commande',
                 'order_number'
