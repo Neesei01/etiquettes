@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Générateur d'Étiquettes : Préparateur de commandes à CR & Rungis 4.0 </title>
+    <title>Générateur d'Étiquettes : Préparateur de commandes à CR & Rungis 5.0 </title>
     <style>
         * {
             margin: 0;
@@ -366,7 +366,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🏷️ Générateur d'Étiquettes : Préparateur de commandes à CR & Rungis 4.0 </h1>
+            <h1>🏷️ Générateur d'Étiquettes : Préparateur de commandes à CR & Rungis 5.0 </h1>
             <p>Format exact: 4.8cm × 2.5cm - 4 colonnes × 8 lignes = 32 étiquettes</p>
             <p>Marges EXACTES: 2.1cm haut/bas, 0.8cm gauche/droite - AUCUN ESPACE entre étiquettes</p>
         </div>
@@ -451,67 +451,142 @@
             const file = event.target.files[0];
             if (!file) return;
 
+            // Vérifier le type de fichier
+            if (!file.name.toLowerCase().endsWith('.csv')) {
+                showMessage('Veuillez sélectionner un fichier CSV (.csv)', 'error');
+                return;
+            }
+
+            // Vérifier la taille du fichier (limite à 10MB)
+            if (file.size > 10 * 1024 * 1024) {
+                showMessage('Le fichier est trop volumineux. Limite: 10MB', 'error');
+                return;
+            }
+
             const reader = new FileReader();
+            
             reader.onload = function(e) {
                 try {
                     parseCSV(e.target.result);
                 } catch (error) {
+                    console.error('Erreur FileReader:', error);
                     showMessage('Erreur lors de la lecture du fichier: ' + error.message, 'error');
                 }
             };
+            
+            reader.onerror = function() {
+                showMessage('Erreur lors de la lecture du fichier', 'error');
+            };
+            
             reader.readAsText(file, 'UTF-8');
         }
 
         function parseCSV(csvText) {
-            const lines = csvText.split('\n').filter(line => line.trim());
-            if (lines.length < 2) {
-                showMessage('Le fichier CSV doit contenir au moins une ligne d\'en-tête et une ligne de données.', 'error');
-                return;
-            }
-
-            csvData = [];
-            const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-            
-            for (let i = 1; i < lines.length; i++) {
-                const values = parseCSVLine(lines[i]);
-                if (values.length === headers.length) {
-                    const row = {};
-                    headers.forEach((header, index) => {
-                        row[header] = values[index];
-                    });
-                    csvData.push(row);
+            try {
+                // Nettoyer le texte CSV
+                const cleanText = csvText.replace(/\r/g, '').trim();
+                const lines = cleanText.split('\n').filter(line => line.trim().length > 0);
+                
+                if (lines.length < 2) {
+                    showMessage('Le fichier CSV doit contenir au moins une ligne d\'en-tête et une ligne de données.', 'error');
+                    return;
                 }
-            }
 
-            if (csvData.length === 0) {
-                showMessage('Aucune donnée valide trouvée dans le fichier CSV.', 'error');
-                return;
-            }
+                csvData = [];
+                
+                // Parse la première ligne comme en-têtes
+                const headers = parseCSVLine(lines[0]);
+                console.log('Headers détectés:', headers);
+                
+                // Parse chaque ligne de données
+                for (let i = 1; i < lines.length; i++) {
+                    try {
+                        const values = parseCSVLine(lines[i]);
+                        
+                        // Créer l'objet ligne seulement si on a des valeurs
+                        if (values.length > 0) {
+                            const row = {};
+                            
+                            // Mapper les valeurs aux en-têtes
+                            for (let j = 0; j < Math.min(headers.length, values.length); j++) {
+                                const header = headers[j] ? headers[j].trim() : `colonne_${j}`;
+                                const value = values[j] ? values[j].trim() : '';
+                                row[header] = value;
+                            }
+                            
+                            // Ajouter la ligne seulement si elle contient au moins une valeur non vide
+                            if (Object.values(row).some(val => val && val.length > 0)) {
+                                csvData.push(row);
+                            }
+                        }
+                    } catch (lineError) {
+                        console.warn(`Erreur ligne ${i + 1}:`, lineError.message);
+                        // Continuer avec les autres lignes
+                    }
+                }
 
-            showMessage(`✅ ${csvData.length} lignes chargées avec succès!`, 'success');
-            updateStats();
+                if (csvData.length === 0) {
+                    showMessage('Aucune donnée valide trouvée dans le fichier CSV.', 'error');
+                    return;
+                }
+
+                console.log('Données chargées:', csvData.slice(0, 3)); // Afficher les 3 premières lignes
+                showMessage(`✅ ${csvData.length} lignes chargées avec succès!`, 'success');
+                updateStats();
+                
+            } catch (error) {
+                console.error('Erreur parseCSV:', error);
+                showMessage('Erreur lors du parsing CSV: ' + error.message, 'error');
+            }
         }
 
         function parseCSVLine(line) {
+            if (!line || typeof line !== 'string') {
+                return [];
+            }
+            
             const result = [];
             let current = '';
             let inQuotes = false;
+            let i = 0;
             
-            for (let i = 0; i < line.length; i++) {
+            // Sécurité contre les boucles infinies
+            const maxIterations = line.length * 2;
+            let iterations = 0;
+            
+            while (i < line.length && iterations < maxIterations) {
+                iterations++;
                 const char = line[i];
                 
                 if (char === '"') {
+                    // Gérer les guillemets doubles échappés
+                    if (i + 1 < line.length && line[i + 1] === '"' && inQuotes) {
+                        current += '"';
+                        i += 2; // Passer les deux guillemets
+                        continue;
+                    }
                     inQuotes = !inQuotes;
                 } else if (char === ',' && !inQuotes) {
-                    result.push(current.trim().replace(/"/g, ''));
+                    // Nouvelle colonne
+                    result.push(current.trim());
                     current = '';
                 } else {
                     current += char;
                 }
+                
+                i++;
             }
             
-            result.push(current.trim().replace(/"/g, ''));
-            return result;
+            // Ajouter la dernière colonne
+            result.push(current.trim());
+            
+            // Nettoyer les guillemets en début/fin uniquement
+            return result.map(value => {
+                if (value.startsWith('"') && value.endsWith('"') && value.length >= 2) {
+                    return value.slice(1, -1);
+                }
+                return value;
+            });
         }
 
         function updateStats() {
