@@ -72,20 +72,81 @@
             text-align: right;
         }
         
+        .controls {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+            flex-direction: column;
+        }
+        
+        .controls button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .controls button:hover {
+            background: #0056b3;
+        }
+        
+        .controls button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .pagination-info {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            z-index: 1000;
+        }
+        
         @media print {
             body {
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
+            
+            .controls, .pagination-info {
+                display: none !important;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="pagination-info" id="paginationInfo">
+        Page 1 sur 1
+    </div>
+    
+    <div class="controls">
+        <button id="loadCsvBtn">Charger votre fichier CSV</button>
+        <button id="prevBtn" onclick="previousPage()" disabled>Page Précédente</button>
+        <button id="nextBtn" onclick="nextPage()" disabled>Page Suivante</button>
+        <button onclick="window.print()">Imprimer cette page</button>
+    </div>
+    
     <div class="labels-container" id="labelsContainer">
         <!-- Les étiquettes seront générées ici -->
     </div>
 
     <script>
+        // Variables globales
+        let allData = [];
+        let currentPage = 1;
+        const labelsPerPage = 40;
+        
         // Données d'exemple basées sur votre structure CSV
         const sampleData = [
             { orderNumber: "CMD001", quantity: "5", productName: "Pommes Bio", category: "FRAIS" },
@@ -97,7 +158,18 @@
             { orderNumber: "CMD007", quantity: "2", productName: "Pâtes complètes", category: "AMBIENT" },
             { orderNumber: "CMD008", quantity: "1", productName: "Fromage blanc", category: "FRAIS" },
             { orderNumber: "CMD009", quantity: "6", productName: "Œufs bio", category: "FRAIS" },
-            { orderNumber: "CMD010", quantity: "1", productName: "Miel d'acacia", category: "AMBIENT" }
+            { orderNumber: "CMD010", quantity: "1", productName: "Miel d'acacia", category: "AMBIENT" },
+            // Ajout de données supplémentaires pour tester la pagination
+            { orderNumber: "CMD011", quantity: "2", productName: "Salade verte", category: "FRAIS" },
+            { orderNumber: "CMD012", quantity: "1", productName: "Tomates cerises", category: "FRAIS" },
+            { orderNumber: "CMD013", quantity: "3", productName: "Riz basmati", category: "AMBIENT" },
+            { orderNumber: "CMD014", quantity: "1", productName: "Saumon fumé", category: "FRAIS" },
+            { orderNumber: "CMD015", quantity: "2", productName: "Beurre doux", category: "FRAIS" },
+            { orderNumber: "CMD016", quantity: "1", productName: "Thé Earl Grey", category: "AMBIENT" },
+            { orderNumber: "CMD017", quantity: "4", productName: "Bananes bio", category: "FRAIS" },
+            { orderNumber: "CMD018", quantity: "1", productName: "Chocolat noir", category: "AMBIENT" },
+            { orderNumber: "CMD019", quantity: "2", productName: "Crème fraîche", category: "FRAIS" },
+            { orderNumber: "CMD020", quantity: "1", productName: "Céréales avoine", category: "AMBIENT" }
         ];
 
         function getCategoryColor(category) {
@@ -118,13 +190,17 @@
             }
         }
 
-        function generateLabels(data) {
+        function generateLabels(data, page = 1) {
             const container = document.getElementById('labelsContainer');
             container.innerHTML = '';
             
-            // Générer 40 étiquettes (répéter les données si nécessaire)
-            for (let i = 0; i < 40; i++) {
-                const item = data[i % data.length];
+            // Calculer l'index de début et de fin pour la page actuelle
+            const startIndex = (page - 1) * labelsPerPage;
+            const endIndex = Math.min(startIndex + labelsPerPage, data.length);
+            
+            // Générer les étiquettes pour la page actuelle
+            for (let i = startIndex; i < endIndex; i++) {
+                const item = data[i];
                 
                 const label = document.createElement('div');
                 label.className = 'label';
@@ -143,6 +219,56 @@
                 
                 container.appendChild(label);
             }
+            
+            // Remplir avec des étiquettes vides si nécessaire pour maintenir la grille
+            const remaining = labelsPerPage - (endIndex - startIndex);
+            for (let i = 0; i < remaining; i++) {
+                const emptyLabel = document.createElement('div');
+                emptyLabel.className = 'label';
+                emptyLabel.style.visibility = 'hidden';
+                container.appendChild(emptyLabel);
+            }
+        }
+
+        function updatePagination() {
+            const totalPages = Math.ceil(allData.length / labelsPerPage);
+            
+            // Mettre à jour l'info de pagination
+            document.getElementById('paginationInfo').textContent = 
+                `Page ${currentPage} sur ${totalPages} (${allData.length} étiquettes)`;
+            
+            // Mettre à jour les boutons
+            document.getElementById('prevBtn').disabled = currentPage <= 1;
+            document.getElementById('nextBtn').disabled = currentPage >= totalPages;
+            
+            // Afficher/masquer les boutons de navigation selon le besoin
+            const needPagination = totalPages > 1;
+            document.getElementById('prevBtn').style.display = needPagination ? 'block' : 'none';
+            document.getElementById('nextBtn').style.display = needPagination ? 'block' : 'none';
+        }
+
+        function nextPage() {
+            const totalPages = Math.ceil(allData.length / labelsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                generateLabels(allData, currentPage);
+                updatePagination();
+            }
+        }
+
+        function previousPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                generateLabels(allData, currentPage);
+                updatePagination();
+            }
+        }
+
+        function loadData(data) {
+            allData = [...data];
+            currentPage = 1;
+            generateLabels(allData, currentPage);
+            updatePagination();
         }
 
         // Fonction pour charger des données CSV personnalisées
@@ -173,7 +299,7 @@
                         }
                         
                         if (customData.length > 0) {
-                            generateLabels(customData);
+                            loadData(customData);
                         }
                     };
                     reader.readAsText(file);
@@ -182,31 +308,22 @@
             input.click();
         }
 
-        // Générer les étiquettes avec les données d'exemple
-        generateLabels(sampleData);
+        // Initialisation
+        document.getElementById('loadCsvBtn').onclick = loadCustomData;
         
-        // Ajouter un bouton pour charger un fichier CSV personnalisé
-        const button = document.createElement('button');
-        button.textContent = 'Charger votre fichier CSV';
-        button.style.cssText = `
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            padding: 10px 20px;
-            background: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            z-index: 1000;
-        `;
-        button.onclick = loadCustomData;
-        document.body.appendChild(button);
+        // Dupliquer les données d'exemple pour tester la pagination (créer plus de 40 étiquettes)
+        const extendedSampleData = [];
+        for (let i = 0; i < 3; i++) {
+            sampleData.forEach((item, index) => {
+                extendedSampleData.push({
+                    ...item,
+                    orderNumber: `${item.orderNumber}_${i + 1}`
+                });
+            });
+        }
         
-        // Masquer le bouton lors de l'impression
-        const style = document.createElement('style');
-        style.textContent = '@media print { button { display: none !important; } }';
-        document.head.appendChild(style);
+        // Charger les données étendues pour la démonstration
+        loadData(extendedSampleData);
     </script>
 </body>
 </html>
