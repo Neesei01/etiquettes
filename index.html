@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Générateur d'Étiquettes : Préparateur de commandes à CR & Rungis 3.0 </title>
+    <title>Générateur d'Étiquettes : Préparateur de commandes à CR & Rungis 4.0 </title>
     <style>
         * {
             margin: 0;
@@ -171,7 +171,7 @@
             margin-top: 5px;
         }
 
-        /* FORMAT EXACT AVERY J8654 - DIMENSIONS CORRIGÉES */
+        /* FORMAT EXACT AVERY J8654 MODIFIÉ */
         @page {
             size: A4;
             margin: 0;
@@ -209,7 +209,7 @@
             background: white;
             display: grid;
             grid-template-columns: repeat(4, 48mm); /* 4 colonnes de 4.8cm exactement */
-            grid-template-rows: repeat(10, 25mm);   /* 10 lignes de 2.5cm exactement */
+            grid-template-rows: repeat(8, 25mm);   /* 8 lignes de 2.5cm exactement */
             gap: 0; /* AUCUN ESPACE entre les étiquettes */
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             page-break-after: always;
@@ -248,7 +248,7 @@
             padding: 0.5mm 0;
             border-radius: 1mm;
             margin-bottom: 1mm;
-            line-height: 1.2;
+            line-height: 1.1;
         }
 
         .label-product {
@@ -260,11 +260,10 @@
             font-size: 8pt;
             color: #2c3e50;
             text-align: center;
-            line-height: 1.2;
+            line-height: 1.1;
             word-wrap: break-word;
             overflow-wrap: break-word;
             hyphens: auto;
-            padding: 0 1mm;
         }
 
         .label-order {
@@ -273,8 +272,8 @@
             text-align: center;
             font-weight: bold;
             margin-top: 1mm;
-            line-height: 1.2;
-            letter-spacing: 0.2mm;
+            line-height: 1.1;
+            letter-spacing: 0.1mm;
         }
 
         /* Codes couleur par catégorie */
@@ -346,7 +345,7 @@
         .debug-mode .label {
             border: 1px solid #ff0000;
         }
-        
+
         .debug-mode .label:nth-child(1) {
             background: rgba(255, 0, 0, 0.1);
         }
@@ -355,27 +354,20 @@
             background: rgba(0, 255, 0, 0.1);
         }
         
-        .debug-mode .label:nth-child(37) {
+        .debug-mode .label:nth-child(29) {
             background: rgba(0, 0, 255, 0.1);
         }
         
-        .debug-mode .label:nth-child(40) {
+        .debug-mode .label:nth-child(32) {
             background: rgba(255, 255, 0, 0.1);
-        }
-
-        /* Ajustement pour l'impression */
-        @media print {
-            .label {
-                border: 0.5px solid #e0e0e0;
-            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🏷️ Générateur d'Étiquettes : Préparateur de commandes à CR & Rungis 3.0 </h1>
-            <p>Format exact: 4.8cm × 2.5cm - 4 colonnes × 10 lignes = 40 étiquettes</p>
+            <h1>🏷️ Générateur d'Étiquettes : Préparateur de commandes à CR & Rungis 4.0 </h1>
+            <p>Format exact: 4.8cm × 2.5cm - 4 colonnes × 8 lignes = 32 étiquettes</p>
             <p>Marges EXACTES: 2.1cm haut/bas, 0.8cm gauche/droite - AUCUN ESPACE entre étiquettes</p>
         </div>
 
@@ -395,11 +387,11 @@
             <div class="controls">
                 <div class="control-group">
                     <label for="fontSize">Taille police produit (pt)</label>
-                    <input type="number" id="fontSize" value="8" min="5" max="10" />
+                    <input type="number" id="fontSize" value="8" min="6" max="12" />
                 </div>
                 <div class="control-group">
                     <label for="orderFontSize">Taille police commande (pt)</label>
-                    <input type="number" id="orderFontSize" value="10" min="6" max="12" />
+                    <input type="number" id="orderFontSize" value="10" min="8" max="14" />
                 </div>
                 <div class="control-group">
                     <label for="startPage">Page de départ</label>
@@ -434,7 +426,7 @@
                     <div class="stat-label">Catégories différentes</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number" id="labelsPerPage">40</div>
+                    <div class="stat-number" id="labelsPerPage">32</div>
                     <div class="stat-label">Étiquettes par page</div>
                 </div>
             </div>
@@ -449,9 +441,9 @@
         let csvData = [];
         let currentPage = 1;
         let totalPages = 0;
-        const LABELS_PER_PAGE = 40; // Exactement 40 pour Avery J8654
+        const LABELS_PER_PAGE = 32; // 4 colonnes × 8 lignes = 32 étiquettes
         const COLS_PER_PAGE = 4;    // 4 colonnes
-        const ROWS_PER_PAGE = 10;   // 10 lignes
+        const ROWS_PER_PAGE = 8;    // 8 lignes
 
         document.getElementById('csvFile').addEventListener('change', handleFileSelect);
 
@@ -471,13 +463,6 @@
         }
 
         function parseCSV(csvText) {
-            // Nettoyer le BOM si présent
-            csvText = csvText.replace(/^\uFEFF/, '');
-            
-            // Détecter le séparateur (virgule ou point-virgule)
-            const firstLine = csvText.split('\n')[0];
-            const separator = firstLine.includes(';') ? ';' : ',';
-            
             const lines = csvText.split('\n').filter(line => line.trim());
             if (lines.length < 2) {
                 showMessage('Le fichier CSV doit contenir au moins une ligne d\'en-tête et une ligne de données.', 'error');
@@ -485,14 +470,10 @@
             }
 
             csvData = [];
-            const headers = lines[0].split(separator).map(h => h.trim().replace(/^["']|["']$/g, ''));
-            
-            console.log('En-têtes détectés:', headers);
-            console.log('Séparateur utilisé:', separator);
-            showMessage(`En-têtes trouvés: ${headers.join(', ')} (séparateur: ${separator})`, 'success');
+            const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
             
             for (let i = 1; i < lines.length; i++) {
-                const values = parseCSVLine(lines[i], separator);
+                const values = parseCSVLine(lines[i]);
                 if (values.length === headers.length) {
                     const row = {};
                     headers.forEach((header, index) => {
@@ -507,12 +488,11 @@
                 return;
             }
 
-            console.log('Première ligne de données:', csvData[0]);
             showMessage(`✅ ${csvData.length} lignes chargées avec succès!`, 'success');
             updateStats();
         }
 
-        function parseCSVLine(line, separator = ',') {
+        function parseCSVLine(line) {
             const result = [];
             let current = '';
             let inQuotes = false;
@@ -522,15 +502,15 @@
                 
                 if (char === '"') {
                     inQuotes = !inQuotes;
-                } else if (char === separator && !inQuotes) {
-                    result.push(current.trim().replace(/^["']|["']$/g, ''));
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim().replace(/"/g, ''));
                     current = '';
                 } else {
                     current += char;
                 }
             }
             
-            result.push(current.trim().replace(/^["']|["']$/g, ''));
+            result.push(current.trim().replace(/"/g, ''));
             return result;
         }
 
@@ -562,6 +542,22 @@
                 'conservation'
             ];
             
+            showMessage('✅ Données d\'exemple chargées! Cliquez sur "Générer les étiquettes".', 'success');
+            updateStats();
+        }
+
+        function showMessage(text, type) {
+            const container = document.getElementById('messages');
+            const className = type === 'error' ? 'error' : 'success';
+            container.innerHTML = `<div class="${className}">${text}</div>`;
+            
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
             for (const key of possibleKeys) {
                 if (row[key]) return row[key];
             }
@@ -570,8 +566,8 @@
 
         function getQuantityFromRow(row) {
             const possibleKeys = [
-                'Quantité',
                 'Lineitem quantity',
+                'Quantité',
                 'Quantity',
                 'quantite',
                 'qty'
@@ -600,8 +596,8 @@
 
         function getOrderFromRow(row) {
             const possibleKeys = [
-                'Numéro de commande',
                 'Name',
+                'Numéro de commande',
                 'Order',
                 'commande',
                 'order_number'
@@ -645,7 +641,7 @@
             
             let html = '<div class="labels-page">';
             
-            // Générer exactement 40 étiquettes (4 colonnes × 10 lignes)
+            // Générer exactement 32 étiquettes (4 colonnes × 8 lignes)
             for (let i = 0; i < LABELS_PER_PAGE; i++) {
                 if (i < pageData.length) {
                     const row = pageData[i];
@@ -670,7 +666,7 @@
                         </div>
                     `;
                 } else {
-                    // Étiquette vide pour compléter la grille de 40
+                    // Étiquette vide pour compléter la grille de 32
                     html += '<div class="label"></div>';
                 }
             }
@@ -846,4 +842,12 @@
                     'Name': '#1391',
                     'Lineitem quantity': '3',
                     'Lineitem name': 'Bobolo / Bâtons de maniocs - Grand',
-                    'categorie_conservation
+                    'categorie_conservation': 'frais'
+                },
+                {
+                    'Name': '#1392',
+                    'Lineitem quantity': '7',
+                    'Lineitem name': 'Bobolo / Bâtons de maniocs - Petit',
+                    'categorie_conservation': 'frais'
+                }
+            ];
