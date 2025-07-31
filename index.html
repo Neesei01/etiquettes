@@ -12,10 +12,9 @@
         
         body {
             margin: 0;
-            padding: 0;
+            padding: 15mm 8mm 15mm 8mm;
             font-family: Arial, sans-serif;
             background: white;
-            height: 297mm; /* Hauteur A4 */
         }
         
         .labels-container {
@@ -23,12 +22,9 @@
             grid-template-columns: repeat(4, 1fr);
             grid-template-rows: repeat(10, 1fr);
             gap: 0;
-            width: calc(210mm - 16mm); /* Largeur A4 moins marges latérales */
-            height: calc(297mm - 42mm); /* Hauteur A4 moins marges haut/bas */
-            margin: 21mm 8mm;
-            position: absolute;
-            top: 0;
-            left: 0;
+            width: calc(100% - 10mm);
+            height: calc(100vh - 30mm);
+            margin: 0 auto;
         }
         
         .label {
