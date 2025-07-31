@@ -12,22 +12,9 @@
         
         body {
             margin: 0;
-            padding: 0;
+            padding: 15mm 8mm 10mm 8mm;
             font-family: Arial, sans-serif;
             background: white;
-        }
-        
-        .page {
-            width: 210mm;
-            height: 297mm;
-            padding: 15mm 8mm 10mm 8mm;
-            box-sizing: border-box;
-            page-break-after: always;
-            page-break-inside: avoid;
-        }
-        
-        .page:last-child {
-            page-break-after: auto;
         }
         
         .labels-container {
@@ -35,8 +22,9 @@
             grid-template-columns: repeat(4, 1fr);
             grid-template-rows: repeat(10, 1fr);
             gap: 0;
-            width: 100%;
-            height: 100%;
+            width: calc(100% - 10mm);
+            height: calc(100vh - 25mm);
+            margin: 0 auto;
         }
         
         .label {
@@ -84,73 +72,17 @@
             text-align: right;
         }
         
-        .controls {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            z-index: 1000;
-            background: white;
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        .controls button {
-            padding: 8px 16px;
-            margin: 0 5px;
-            background: #007bff;
-            color: white;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        
-        .controls button:hover {
-            background: #0056b3;
-        }
-        
-        .controls .info {
-            font-size: 12px;
-            margin-bottom: 10px;
-            color: #666;
-        }
-        
         @media print {
             body {
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
-            
-            .controls {
-                display: none !important;
-            }
-            
-            .page {
-                width: 210mm;
-                height: 297mm;
-                padding: 15mm 8mm 10mm 8mm;
-            }
-        }
-        
-        @media screen {
-            .page {
-                margin-bottom: 20px;
-                border: 1px solid #ccc;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            }
         }
     </style>
 </head>
 <body>
-    <div class="controls">
-        <div class="info" id="pageInfo">Pages: 0 | Produits: 0</div>
-        <button onclick="loadCustomData()">Charger CSV</button>
-        <button onclick="window.print()">Imprimer</button>
-    </div>
-    
-    <div id="pagesContainer">
-        <!-- Les pages seront générées ici -->
+    <div class="labels-container" id="labelsContainer">
+        <!-- Les étiquettes seront générées ici -->
     </div>
 
     <script>
@@ -165,13 +97,7 @@
             { orderNumber: "CMD007", quantity: "2", productName: "Pâtes complètes", category: "AMBIENT" },
             { orderNumber: "CMD008", quantity: "1", productName: "Fromage blanc", category: "FRAIS" },
             { orderNumber: "CMD009", quantity: "6", productName: "Œufs bio", category: "FRAIS" },
-            { orderNumber: "CMD010", quantity: "1", productName: "Miel d'acacia", category: "AMBIENT" },
-            // Ajout de données supplémentaires pour tester les pages multiples
-            { orderNumber: "CMD011", quantity: "2", productName: "Beurre doux", category: "FRAIS" },
-            { orderNumber: "CMD012", quantity: "1", productName: "Confiture fraise", category: "AMBIENT" },
-            { orderNumber: "CMD013", quantity: "3", productName: "Saumon fumé", category: "FRAIS" },
-            { orderNumber: "CMD014", quantity: "1", productName: "Riz basmati", category: "AMBIENT" },
-            { orderNumber: "CMD015", quantity: "2", productName: "Crème fraîche", category: "FRAIS" }
+            { orderNumber: "CMD010", quantity: "1", productName: "Miel d'acacia", category: "AMBIENT" }
         ];
 
         function getCategoryColor(category) {
@@ -192,68 +118,31 @@
             }
         }
 
-        function createLabel(item) {
-            const label = document.createElement('div');
-            label.className = 'label';
-            
-            // Utiliser la nouvelle fonction pour déterminer la couleur
-            const categoryColor = getCategoryColor(item.category);
-            
-            label.innerHTML = `
-                <div class="label-category" style="background-color: ${categoryColor};">
-                    ${item.category}
-                </div>
-                <div class="label-quantity">Qté: ${item.quantity}</div>
-                <div class="label-product">${item.productName}</div>
-                <div class="label-order">${item.orderNumber}</div>
-            `;
-            
-            return label;
-        }
-
         function generateLabels(data) {
-            const container = document.getElementById('pagesContainer');
+            const container = document.getElementById('labelsContainer');
             container.innerHTML = '';
             
-            const labelsPerPage = 40; // 4 colonnes × 10 rangées
-            const totalPages = Math.ceil(data.length / labelsPerPage);
-            
-            for (let pageIndex = 0; pageIndex < totalPages; pageIndex++) {
-                // Créer une nouvelle page
-                const page = document.createElement('div');
-                page.className = 'page';
+            // Générer 40 étiquettes (répéter les données si nécessaire)
+            for (let i = 0; i < 40; i++) {
+                const item = data[i % data.length];
                 
-                const labelsContainer = document.createElement('div');
-                labelsContainer.className = 'labels-container';
+                const label = document.createElement('div');
+                label.className = 'label';
                 
-                // Ajouter les étiquettes pour cette page
-                const startIndex = pageIndex * labelsPerPage;
-                const endIndex = Math.min(startIndex + labelsPerPage, data.length);
+                // Utiliser la nouvelle fonction pour déterminer la couleur
+                const categoryColor = getCategoryColor(item.category);
                 
-                for (let i = startIndex; i < endIndex; i++) {
-                    const label = createLabel(data[i]);
-                    labelsContainer.appendChild(label);
-                }
+                label.innerHTML = `
+                    <div class="label-category" style="background-color: ${categoryColor};">
+                        ${item.category}
+                    </div>
+                    <div class="label-quantity">Qté: ${item.quantity}</div>
+                    <div class="label-product">${item.productName}</div>
+                    <div class="label-order">${item.orderNumber}</div>
+                `;
                 
-                // Remplir les espaces vides de la dernière page avec des étiquettes vides
-                const labelsOnThisPage = endIndex - startIndex;
-                for (let i = labelsOnThisPage; i < labelsPerPage; i++) {
-                    const emptyLabel = document.createElement('div');
-                    emptyLabel.className = 'label';
-                    emptyLabel.style.border = '1px solid #f0f0f0';
-                    labelsContainer.appendChild(emptyLabel);
-                }
-                
-                page.appendChild(labelsContainer);
-                container.appendChild(page);
+                container.appendChild(label);
             }
-            
-            // Mettre à jour les informations
-            updatePageInfo(totalPages, data.length);
-        }
-
-        function updatePageInfo(pages, products) {
-            document.getElementById('pageInfo').textContent = `Pages: ${pages} | Produits: ${products}`;
         }
 
         // Fonction pour charger des données CSV personnalisées
@@ -273,22 +162,18 @@
                         const customData = [];
                         for (let i = 1; i < lines.length; i++) {
                             if (lines[i].trim()) {
-                                const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
-                                if (values.length >= 4) {
-                                    customData.push({
-                                        orderNumber: values[0] || '',
-                                        quantity: values[1] || '',
-                                        productName: values[2] || '',
-                                        category: values[3] || ''
-                                    });
-                                }
+                                const values = lines[i].split(',').map(v => v.trim());
+                                customData.push({
+                                    orderNumber: values[0] || '',
+                                    quantity: values[1] || '',
+                                    productName: values[2] || '',
+                                    category: values[3] || ''
+                                });
                             }
                         }
                         
                         if (customData.length > 0) {
                             generateLabels(customData);
-                        } else {
-                            alert('Aucune donnée valide trouvée dans le fichier CSV.');
                         }
                     };
                     reader.readAsText(file);
@@ -297,18 +182,31 @@
             input.click();
         }
 
-        // Générer les étiquettes avec les données d'exemple (répétées pour tester)
-        const extendedSampleData = [];
-        for (let i = 0; i < 5; i++) {
-            sampleData.forEach(item => {
-                extendedSampleData.push({
-                    ...item,
-                    orderNumber: item.orderNumber + '_' + (i + 1)
-                });
-            });
-        }
+        // Générer les étiquettes avec les données d'exemple
+        generateLabels(sampleData);
         
-        generateLabels(extendedSampleData);
+        // Ajouter un bouton pour charger un fichier CSV personnalisé
+        const button = document.createElement('button');
+        button.textContent = 'Charger votre fichier CSV';
+        button.style.cssText = `
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 1000;
+        `;
+        button.onclick = loadCustomData;
+        document.body.appendChild(button);
+        
+        // Masquer le bouton lors de l'impression
+        const style = document.createElement('style');
+        style.textContent = '@media print { button { display: none !important; } }';
+        document.head.appendChild(style);
     </script>
 </body>
 </html>
