@@ -135,7 +135,6 @@
         <button id="prevBtn" onclick="previousPage()" disabled>Page Précédente</button>
         <button id="nextBtn" onclick="nextPage()" disabled>Page Suivante</button>
         <button onclick="window.print()">Imprimer cette page</button>
-        <button onclick="printAllPages()">Imprimer toutes les pages</button>
     </div>
     
     <div class="labels-container" id="labelsContainer">
@@ -263,89 +262,6 @@
                 generateLabels(allData, currentPage);
                 updatePagination();
             }
-        }
-
-        function printAllPages() {
-            // Sauvegarder l'état actuel
-            const originalPage = currentPage;
-            const originalContent = document.getElementById('labelsContainer').innerHTML;
-            
-            // Créer un conteneur temporaire pour toutes les pages avec le même wrapper que le body
-            const printWrapper = document.createElement('div');
-            printWrapper.style.cssText = `
-                margin: 0;
-                padding: 15mm 8mm 10mm 8mm;
-                font-family: Arial, sans-serif;
-                background: white;
-                display: none;
-            `;
-            document.body.appendChild(printWrapper);
-            
-            const totalPages = Math.ceil(allData.length / labelsPerPage);
-            
-            // Générer toutes les pages
-            for (let page = 1; page <= totalPages; page++) {
-                // Créer une page avec exactement la même structure
-                const pageDiv = document.createElement('div');
-                pageDiv.className = 'labels-container';
-                pageDiv.style.pageBreakAfter = page < totalPages ? 'always' : 'auto';
-                
-                // Calculer l'index de début et de fin pour cette page
-                const startIndex = (page - 1) * labelsPerPage;
-                const endIndex = Math.min(startIndex + labelsPerPage, allData.length);
-                
-                // Générer les étiquettes pour cette page
-                for (let i = startIndex; i < endIndex; i++) {
-                    const item = allData[i];
-                    
-                    const label = document.createElement('div');
-                    label.className = 'label';
-                    
-                    const categoryColor = getCategoryColor(item.category);
-                    
-                    label.innerHTML = `
-                        <div class="label-category" style="background-color: ${categoryColor};">
-                            ${item.category}
-                        </div>
-                        <div class="label-quantity">Qté: ${item.quantity}</div>
-                        <div class="label-product">${item.productName}</div>
-                        <div class="label-order">${item.orderNumber}</div>
-                    `;
-                    
-                    pageDiv.appendChild(label);
-                }
-                
-                // Remplir avec des étiquettes vides si nécessaire
-                const remaining = labelsPerPage - (endIndex - startIndex);
-                for (let i = 0; i < remaining; i++) {
-                    const emptyLabel = document.createElement('div');
-                    emptyLabel.className = 'label';
-                    emptyLabel.style.visibility = 'hidden';
-                    pageDiv.appendChild(emptyLabel);
-                }
-                
-                printWrapper.appendChild(pageDiv);
-            }
-            
-            // Remplacer temporairement le contenu principal tout en gardant la même structure
-            const mainContainer = document.getElementById('labelsContainer');
-            const bodyOriginalStyle = document.body.style.cssText;
-            
-            // Cacher le contenu principal
-            mainContainer.style.display = 'none';
-            
-            // Appliquer temporairement le style du wrapper
-            printWrapper.style.display = 'block';
-            
-            // Imprimer
-            window.print();
-            
-            // Restaurer l'état original après l'impression
-            setTimeout(() => {
-                document.body.removeChild(printWrapper);
-                mainContainer.style.display = 'grid';
-                document.body.style.cssText = bodyOriginalStyle;
-            }, 1000);
         }
 
         function loadData(data) {
